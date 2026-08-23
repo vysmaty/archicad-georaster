@@ -1,0 +1,33 @@
+name: Upstream update proposal
+
+on:
+  schedule:
+    - cron: "17 5 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  propose:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          submodules: recursive
+      - uses: astral-sh/setup-uv@v10.0.1
+      - name: Update controlled pins
+        run: uv run --script tools/check_updates.py --apply
+      - name: Open or refresh review pull request
+        uses: peter-evans/create-pull-request@v8.1.1
+        with:
+          branch: chore/automated-upstream-updates
+          delete-branch: true
+          commit-message: "chore(deps): update pinned Archicad upstreams"
+          title: "chore(deps): update pinned Archicad upstreams"
+          body: |
+            Automated weekly proposal for already-supported Archicad majors.
+
+            This workflow never adds a new Archicad major and never merges automatically.
+          labels: dependencies

@@ -1,0 +1,11 @@
+{
+  "addOnName": "GeoRaster",
+  "defaultLanguage": "CZE",
+  "languages": ["CZE", "INT"],
+  "version": "0.1.0",
+  "copyright": {
+    "name": "vysmaty",
+    "year": "2026"
+  },
+  "description": "Georeferenced PNG/JPEG import for Archicad 27-29"
+}

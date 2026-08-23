@@ -1,0 +1,6 @@
+#pragma once
+
+#define ID_ADDON_INFO 32000
+#define ID_ADDON_MENU 32500
+#define ID_IMPORT_DIALOG 32501
+#define ID_STATUS_STRINGS 32502

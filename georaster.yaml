@@ -1,0 +1,41 @@
+project:
+  name: archicad-georaster
+  platform: windows-x64
+  minimum_archicad: 27
+  supported_archicad: [27, 28, 29]
+  languages: [CZE, INT]
+  default_language: CZE
+  distribution: false
+
+compatibility:
+  baseline: 27
+  allow_automatic_new_major: false
+
+devkits:
+  27:
+    release: "27.6003"
+    asset: API.Development.Kit.WIN.27.6003.zip
+    url: https://github.com/GRAPHISOFT/archicad-api-devkit/releases/download/27.6003/API.Development.Kit.WIN.27.6003.zip
+    cmake_toolset: v142
+  28:
+    release: "28.4001"
+    asset: API.Development.Kit.WIN.28.4001.zip
+    url: https://github.com/GRAPHISOFT/archicad-api-devkit/releases/download/28.4001/API.Development.Kit.WIN.28.4001.zip
+    cmake_toolset: v142
+  29:
+    release: "29.3100"
+    asset: API.Development.Kit.WIN.29.3100.zip
+    url: https://github.com/GRAPHISOFT/archicad-api-devkit/releases/download/29.3100/API.Development.Kit.WIN.29.3100.zip
+    cmake_toolset: v143
+
+upstreams:
+  template:
+    url: https://github.com/vysmaty/archicad-dev
+    commit: b2a757d85a0391e1ca4d53bcbc85a2f72cde6612
+  graphisoft_cmake_tools:
+    url: https://github.com/GRAPHISOFT/archicad-addon-cmake-tools
+    path: external/archicad-addon-cmake-tools
+    pinned_commit: "7a6f8aa174ea1651f3a15c9f704be6c051a5061f"
+  graphisoft_api_devkit:
+    url: https://github.com/GRAPHISOFT/archicad-api-devkit
+    releases: https://github.com/GRAPHISOFT/archicad-api-devkit/releases

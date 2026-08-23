@@ -1,0 +1,75 @@
+name: Archicad Add-On build
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  python-quality:
+    name: Python quality and repository contracts
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          submodules: recursive
+      - uses: astral-sh/setup-uv@v10.0.1
+      - name: Synchronize locked environment
+        run: uv sync --all-groups --locked
+      - name: Ruff formatting and lint
+        run: |
+          uv run ruff format --check .
+          uv run ruff check .
+      - name: Type check
+        run: uv run ty check tools tests
+      - name: Structural tests
+        run: uv run pytest
+
+  build:
+    name: AC${{ matrix.version }} ${{ matrix.configuration }} ${{ matrix.language }}
+    runs-on: windows-2022
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - version: 27
+            configuration: Debug
+            language: CZE
+          - version: 27
+            configuration: Release
+            language: CZE
+          - version: 28
+            configuration: Debug
+            language: CZE
+          - version: 28
+            configuration: Release
+            language: CZE
+          - version: 29
+            configuration: Debug
+            language: CZE
+          - version: 29
+            configuration: Release
+            language: CZE
+          - version: 29
+            configuration: Debug
+            language: INT
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          submodules: recursive
+      - uses: astral-sh/setup-uv@v10.0.1
+      - name: Report Visual Studio toolchains
+        shell: pwsh
+        run: |
+          & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" `
+            -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64
+      - name: Download pinned DevKit
+        shell: pwsh
+        run: .\tools\bootstrap.ps1 -Version ${{ matrix.version }}
+      - name: Configure and build
+        shell: pwsh
+        run: .\tools\build.ps1 -Version ${{ matrix.version }} -Configuration ${{ matrix.configuration }} -Language ${{ matrix.language }}
+      - uses: actions/upload-artifact@v7.0.1
+        with:
+          name: GeoRaster-AC${{ matrix.version }}-${{ matrix.configuration }}-${{ matrix.language }}
+          path: build/**/GeoRaster.apx
+          if-no-files-found: error

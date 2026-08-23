@@ -1,0 +1,84 @@
+#include "ResourceIds.hpp"
+
+'STR#' ID_ADDON_INFO "Název a popis doplňku" {
+/* [1] */ "GeoRaster"
+/* [2] */ "Vkládá georeferencované PNG a JPEG rastry podle World File"
+}
+
+'STR#' ID_ADDON_MENU "Příkaz nabídky" {
+/* [1] */ "GeoRaster"
+/* [2] */ "Importovat georeferencovaný rastr..."
+}
+
+'GDLG' ID_IMPORT_DIALOG Modal 120 100 600 390 "Import georeferencovaného rastru" {
+/* [ 1] */ LeftText      12  14  100  22 LargePlain vCenter "Rastr:"
+/* [ 2] */ TextEdit     112  14  390  22 LargePlain 1024
+/* [ 3] */ Button       512  14   76  22 LargePlain "Vybrat..."
+/* [ 4] */ LeftText      12  48  100  22 LargePlain vCenter "World File:"
+/* [ 5] */ TextEdit     112  48  390  22 LargePlain 1024
+/* [ 6] */ Button       512  48   76  22 LargePlain "Vybrat..."
+/* [ 7] */ RadioButton   12  86  220  22 LargePlain 1 "Nový Worksheet"
+/* [ 8] */ RadioButton  250  86  260  22 LargePlain 1 "Aktivní půdorys"
+/* [ 9] */ LeftText      12 122  576 210 SmallPlain "Začněte výběrem rastru."
+/* [10] */ Button       512 354   76  24 LargePlain "Importovat"
+/* [11] */ Button       424 354   76  24 LargePlain "Zrušit"
+}
+
+'DLGH' ID_IMPORT_DIALOG DLG_GeoRaster_Import {
+1  "" LeftText_0
+2  "" TextEdit_0
+3  "" Button_0
+4  "" LeftText_1
+5  "" TextEdit_1
+6  "" Button_1
+7  "" RadioButton_0
+8  "" RadioButton_1
+9  "" LeftText_2
+10 "" Button_2
+11 "" Button_3
+}
+
+'STR#' ID_STATUS_STRINGS "Texty GeoRaster" {
+/* [ 1] */ "Začněte výběrem rastru PNG nebo JPEG."
+/* [ 2] */ "Rastry PNG a JPEG"
+/* [ 3] */ "Soubory World File"
+/* [ 4] */ "Rastr"
+/* [ 5] */ "Měřítko pixelu"
+/* [ 6] */ "Rozsah světových souřadnic"
+/* [ 7] */ "Cílová velikost"
+/* [ 8] */ "Nalezené World File"
+/* [ 9] */ "Import do půdorysu je dostupný jen při spuštění z půdorysu s platnou transformací Survey Pointu."
+/* [10] */ "Kotva v projektu"
+/* [11] */ "natočení"
+/* [12] */ "Kontrola proběhla úspěšně. Import je bezpečný."
+/* [13] */ "Vybraný soubor neexistuje."
+/* [14] */ "Vybraný soubor nelze načíst."
+/* [15] */ "Čísla ve World File musí používat desetinnou tečku."
+/* [16] */ "World File musí obsahovat přesně šest čísel v pořadí A,D,B,E,C,F."
+/* [17] */ "World File obsahuje NaN nebo nekonečno."
+/* [18] */ "Měřítko pixelu nesmí být nulové."
+/* [19] */ "Zrcadlené rastry tato verze nepodporuje."
+/* [20] */ "Rotaci ani smyk ve World File tato verze nepodporuje."
+/* [21] */ "Podporovány jsou pouze formáty PNG, JPG a JPEG."
+/* [22] */ "Hlavička PNG je poškozená nebo neúplná."
+/* [23] */ "Hlavička JPEG je poškozená nebo neobsahuje podporovaný SOF marker."
+/* [24] */ "Transformace Survey Pointu obsahuje neplatná čísla."
+/* [25] */ "Transformace Survey Pointu není rigidní 2D transformace."
+/* [26] */ "Transformace Survey Pointu je singulární."
+/* [27] */ "Některý roh rastru leží více než 10 000 m od Project Origin. Vzdálenost:"
+/* [28] */ "Vstup není platný."
+/* [29] */ "Chyba GeoRaster"
+/* [30] */ "OK"
+/* [31] */ "Vybrané soubory se před importem změnily nebo přestaly být platné."
+/* [32] */ "Nebyl nalezen volný referenční identifikátor Worksheetu."
+/* [33] */ "GeoRaster"
+/* [34] */ "Import georeferencovaného rastru"
+/* [35] */ "Umístění do půdorysu neprošlo bezpečnostní kontrolou Survey Pointu."
+/* [36] */ "GeoRaster – "
+/* [37] */ "Chyba Graphisoft API:"
+}
+
+'MDID' 32500 "Identifikátor doplňku" {
+    1
+    1
+}

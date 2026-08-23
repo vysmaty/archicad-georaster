@@ -1,0 +1,64 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 23,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "windows-x64-base",
+      "hidden": true,
+      "generator": "Visual Studio 17 2022",
+      "architecture": "x64",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "cacheVariables": {
+        "AC_API_DEVKIT_DIR": "$env{AC_API_DEVKIT_DIR}"
+      }
+    },
+    {
+      "name": "ac27-debug",
+      "displayName": "Archicad 27 Debug",
+      "inherits": "windows-x64-base",
+      "toolset": "v142",
+      "cacheVariables": { "AC_VERSION": "27" }
+    },
+    {
+      "name": "ac27-release",
+      "displayName": "Archicad 27 Release",
+      "inherits": "ac27-debug"
+    },
+    {
+      "name": "ac28-debug",
+      "displayName": "Archicad 28 Debug",
+      "inherits": "windows-x64-base",
+      "toolset": "v142",
+      "cacheVariables": { "AC_VERSION": "28" }
+    },
+    {
+      "name": "ac28-release",
+      "displayName": "Archicad 28 Release",
+      "inherits": "ac28-debug"
+    },
+    {
+      "name": "ac29-debug",
+      "displayName": "Archicad 29 Debug",
+      "inherits": "windows-x64-base",
+      "toolset": "v143",
+      "cacheVariables": { "AC_VERSION": "29" }
+    },
+    {
+      "name": "ac29-release",
+      "displayName": "Archicad 29 Release",
+      "inherits": "ac29-debug"
+    }
+  ],
+  "buildPresets": [
+    { "name": "ac27-debug", "configurePreset": "ac27-debug", "configuration": "Debug" },
+    { "name": "ac27-release", "configurePreset": "ac27-release", "configuration": "Release" },
+    { "name": "ac28-debug", "configurePreset": "ac28-debug", "configuration": "Debug" },
+    { "name": "ac28-release", "configurePreset": "ac28-release", "configuration": "Release" },
+    { "name": "ac29-debug", "configurePreset": "ac29-debug", "configuration": "Debug" },
+    { "name": "ac29-release", "configurePreset": "ac29-release", "configuration": "Release" }
+  ]
+}

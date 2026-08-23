@@ -1,0 +1,33 @@
+[project]
+name = "archicad-georaster-tooling"
+version = "0.1.0"
+description = "Development and structural-test tooling for the GeoRaster C++ Add-On"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = []
+
+[tool.uv]
+package = false
+
+[dependency-groups]
+dev = [
+    "pyyaml==6.0.2",
+    "ruff>=0.16.4",
+    "ty>=0.0.74",
+]
+test = [
+    "pytest>=9.1.1",
+]
+
+[tool.pytest.ini_options]
+addopts = "--strict-markers --strict-config"
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = ["external", "third_party", "build", "work"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]

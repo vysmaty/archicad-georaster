@@ -1,0 +1,84 @@
+#include "ResourceIds.hpp"
+
+'STR#' ID_ADDON_INFO "Add-On name and description" {
+/* [1] */ "GeoRaster"
+/* [2] */ "Imports georeferenced PNG and JPEG rasters from World Files"
+}
+
+'STR#' ID_ADDON_MENU "Menu command" {
+/* [1] */ "GeoRaster"
+/* [2] */ "Import georeferenced raster..."
+}
+
+'GDLG' ID_IMPORT_DIALOG Modal 120 100 600 390 "Import georeferenced raster" {
+/* [ 1] */ LeftText      12  14  100  22 LargePlain vCenter "Raster:"
+/* [ 2] */ TextEdit     112  14  390  22 LargePlain 1024
+/* [ 3] */ Button       512  14   76  22 LargePlain "Browse..."
+/* [ 4] */ LeftText      12  48  100  22 LargePlain vCenter "World File:"
+/* [ 5] */ TextEdit     112  48  390  22 LargePlain 1024
+/* [ 6] */ Button       512  48   76  22 LargePlain "Browse..."
+/* [ 7] */ RadioButton   12  86  220  22 LargePlain 1 "New Worksheet"
+/* [ 8] */ RadioButton  250  86  260  22 LargePlain 1 "Active Floor Plan"
+/* [ 9] */ LeftText      12 122  576 210 SmallPlain "Select a raster to begin."
+/* [10] */ Button       512 354   76  24 LargePlain "Import"
+/* [11] */ Button       424 354   76  24 LargePlain "Cancel"
+}
+
+'DLGH' ID_IMPORT_DIALOG DLG_GeoRaster_Import {
+1  "" LeftText_0
+2  "" TextEdit_0
+3  "" Button_0
+4  "" LeftText_1
+5  "" TextEdit_1
+6  "" Button_1
+7  "" RadioButton_0
+8  "" RadioButton_1
+9  "" LeftText_2
+10 "" Button_2
+11 "" Button_3
+}
+
+'STR#' ID_STATUS_STRINGS "GeoRaster strings" {
+/* [ 1] */ "Select a PNG or JPEG raster to begin."
+/* [ 2] */ "PNG and JPEG rasters"
+/* [ 3] */ "World Files"
+/* [ 4] */ "Raster"
+/* [ 5] */ "Pixel scale"
+/* [ 6] */ "World extent"
+/* [ 7] */ "Target size"
+/* [ 8] */ "World File candidates"
+/* [ 9] */ "Floor Plan import is available only when opened from a Floor Plan with a valid Survey Point transform."
+/* [10] */ "Project anchor"
+/* [11] */ "rotation"
+/* [12] */ "Validation passed. Import is safe."
+/* [13] */ "The selected file does not exist."
+/* [14] */ "The selected file cannot be read."
+/* [15] */ "World File numbers must use a decimal point."
+/* [16] */ "World File must contain exactly six numbers in A,D,B,E,C,F order."
+/* [17] */ "World File contains NaN or infinity."
+/* [18] */ "Pixel scale must not be zero."
+/* [19] */ "Mirrored rasters are not supported in this version."
+/* [20] */ "World File rotation or shear is not supported in this version."
+/* [21] */ "Only PNG, JPG and JPEG are supported."
+/* [22] */ "The PNG header is damaged or incomplete."
+/* [23] */ "The JPEG header is damaged or has no supported SOF marker."
+/* [24] */ "Survey Point transformation contains invalid numbers."
+/* [25] */ "Survey Point transformation is not rigid 2D."
+/* [26] */ "Survey Point transformation is singular."
+/* [27] */ "A raster corner is more than 10,000 m from Project Origin. Distance:"
+/* [28] */ "The input is not valid."
+/* [29] */ "GeoRaster error"
+/* [30] */ "OK"
+/* [31] */ "The selected files changed or became invalid before import."
+/* [32] */ "No free Worksheet reference ID was found."
+/* [33] */ "GeoRaster"
+/* [34] */ "Import georeferenced raster"
+/* [35] */ "Floor Plan placement failed the Survey Point safety validation."
+/* [36] */ "GeoRaster – "
+/* [37] */ "Graphisoft API error:"
+}
+
+'MDID' 32500 "Add-On Identifier" {
+    1
+    1
+}
