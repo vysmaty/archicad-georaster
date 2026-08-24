@@ -25,15 +25,15 @@ void ReportRollbackFailure(GSErrCode restoreError, GSErrCode deleteError)
                       restoreError, deleteError);
 }
 
-GSErrCode GetCurrentDatabase(API_DatabaseInfo& database)
+GSErrCode GetCurrentWindow(API_WindowInfo& window)
 {
-    database = {};
-    return ACAPI_Database_GetCurrentDatabase(&database);
+    window = {};
+    return ACAPI_Window_GetCurrentWindow(&window);
 }
 
-GSErrCode ChangeCurrentDatabase(API_DatabaseInfo& database)
+GSErrCode ActivateWindow(const API_WindowInfo& window)
 {
-    return ACAPI_Database_ChangeCurrentDatabase(&database);
+    return ACAPI_Window_ChangeWindow(&window);
 }
 
 GSErrCode GetPictureDefaults(API_Element& element)
@@ -46,19 +46,24 @@ GSErrCode GetPictureDefaults(API_Element& element)
 GSErrCode CreateWorksheet(
     const GS::UniString& reference,
     const GS::UniString& name,
-    API_DatabaseInfo& database
+    WorksheetHandle& worksheet
 )
 {
-    database = {};
-    database.typeID = APIWind_WorksheetID;
-    GS::ucscpy(database.ref, reference.ToUStr().Get());
-    GS::ucscpy(database.name, name.ToUStr().Get());
-    return ACAPI_Database_NewDatabase(&database);
+    worksheet = {};
+    worksheet.database.typeID = APIWind_WorksheetID;
+    GS::ucscpy(worksheet.database.ref, reference.ToUStr().Get());
+    GS::ucscpy(worksheet.database.name, name.ToUStr().Get());
+    const GSErrCode error = ACAPI_Database_NewDatabase(&worksheet.database);
+    if (error == NoError) {
+        worksheet.window.typeID = APIWind_WorksheetID;
+        worksheet.window.databaseUnId = worksheet.database.databaseUnId;
+    }
+    return error;
 }
 
-GSErrCode DeleteWorksheet(API_DatabaseInfo& database)
+GSErrCode DeleteWorksheet(WorksheetHandle& worksheet)
 {
-    return ACAPI_Database_DeleteDatabase(&database);
+    return ACAPI_Database_DeleteDatabase(&worksheet.database);
 }
 
 bool WorksheetReferenceExists(const GS::UniString& reference)
@@ -98,6 +103,55 @@ GSErrCode GetProjectToSurveyTransform(GeoRaster::Affine2D& transform)
         matrix.tmx[0], matrix.tmx[1], matrix.tmx[4], matrix.tmx[5],
         matrix.tmx[3], matrix.tmx[7]
     };
+    return NoError;
+}
+
+GSErrCode GetProjectLengthUnit(GeoRaster::LengthUnitInfo& unit)
+{
+    API_WorkingUnitPrefs preferences {};
+    const GSErrCode error = ACAPI_ProjectSetting_GetPreferences(
+        &preferences, APIPrefs_WorkingUnitsID
+    );
+    if (error != NoError) {
+        unit = {};
+        return error;
+    }
+
+    unit.available = true;
+    switch (preferences.lengthUnit) {
+        case API_LengthTypeID::Meter: unit = {1.0, "m", true}; break;
+        case API_LengthTypeID::Decimeter: unit = {0.1, "dm", true}; break;
+        case API_LengthTypeID::Centimeter: unit = {0.01, "cm", true}; break;
+        case API_LengthTypeID::Millimeter: unit = {0.001, "mm", true}; break;
+        case API_LengthTypeID::FootFracInch: unit = {0.3048, "ft/in", true}; break;
+        case API_LengthTypeID::FootDecInch: unit = {0.3048, "ft/in", true}; break;
+        case API_LengthTypeID::DecFoot: unit = {0.3048, "ft", true}; break;
+        case API_LengthTypeID::FracInch: unit = {0.0254, "in", true}; break;
+        case API_LengthTypeID::DecInch: unit = {0.0254, "in", true}; break;
+        case API_LengthTypeID::KiloMeter: unit = {1000.0, "km", true}; break;
+        case API_LengthTypeID::Yard: unit = {0.9144, "yd", true}; break;
+        default:
+            unit = {};
+            return APIERR_BADID;
+    }
+    return NoError;
+}
+
+GSErrCode FormatProjectLength(double meters, GS::UniString& formatted)
+{
+    API_UnitConversionData conversion {};
+    conversion.value = meters;
+    conversion.unitConvPref = APIUnitConv_WorkModel;
+    const GSErrCode error = ACAPI_Conversion_GetConvertedUnitValue(&conversion);
+    if (error != NoError) {
+        formatted.Clear();
+        return error;
+    }
+    formatted = GS::UniString(conversion.convertedValue);
+    if (conversion.unit[0] != 0) {
+        formatted += " ";
+        formatted += GS::UniString(conversion.unit);
+    }
     return NoError;
 }
 

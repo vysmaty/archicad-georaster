@@ -59,12 +59,25 @@ struct Affine2D {
     double ty = 0.0;
 };
 
+struct LengthUnitInfo {
+    double metersPerUnit = 1.0;
+    std::string symbol = "m";
+    bool available = false;
+};
+
 struct FloorPlanPlacement {
     WorldFootprint localCorners;
     Point2D anchor;
     double width = 0.0;
     double height = 0.0;
     double rotation = 0.0;
+};
+
+struct SurveyPlacementDiagnostics {
+    Point2D surveyPointProjectPosition;
+    Point2D projectOriginSurveyCoordinates;
+    double maximumCornerDistance = 0.0;
+    std::optional<double> suggestedSurveyPointScale;
 };
 
 enum class ValidationCode {
@@ -85,6 +98,7 @@ enum class ValidationCode {
     NonFiniteSurveyTransform,
     NonRigidSurveyTransform,
     SingularSurveyTransform,
+    ProbableSurveyPointUnitMismatch,
     TooFarFromProjectOrigin
 };
 
@@ -103,6 +117,17 @@ struct Validated {
     ValidationResult validation;
 
     [[nodiscard]] bool IsValid() const { return value.has_value() && validation.IsValid(); }
+};
+
+struct FloorPlanPlacementAnalysis {
+    std::optional<FloorPlanPlacement> placement;
+    SurveyPlacementDiagnostics diagnostics;
+    ValidationResult validation;
+
+    [[nodiscard]] bool IsValid() const
+    {
+        return placement.has_value() && validation.IsValid();
+    }
 };
 
 struct WorldFileDiscovery {
@@ -125,6 +150,12 @@ WorksheetPlacement ComputeWorksheetPlacement(const WorldFootprint& footprint);
 Validated<FloorPlanPlacement> ComputeFloorPlanPlacement(
     const WorldFootprint& surveyFootprint,
     const Affine2D& projectToSurvey,
+    double maximumDistance = 10000.0
+);
+FloorPlanPlacementAnalysis AnalyzeFloorPlanPlacement(
+    const WorldFootprint& surveyFootprint,
+    const Affine2D& projectToSurvey,
+    const LengthUnitInfo& projectLengthUnit = {},
     double maximumDistance = 10000.0
 );
 Bounds2D ComputeBounds(const WorldFootprint& footprint);

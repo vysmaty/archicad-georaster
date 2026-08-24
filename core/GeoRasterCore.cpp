@@ -147,20 +147,21 @@ WorksheetPlacement ComputeWorksheetPlacement(const WorldFootprint& footprint)
     };
 }
 
-Validated<FloorPlanPlacement> ComputeFloorPlanPlacement(
+FloorPlanPlacementAnalysis AnalyzeFloorPlanPlacement(
     const WorldFootprint& surveyFootprint,
     const Affine2D& projectToSurvey,
+    const LengthUnitInfo& projectLengthUnit,
     double maximumDistance
 )
 {
     if (!IsFinite(projectToSurvey)) {
-        return {{}, ValidationResult::Failure(ValidationCode::NonFiniteSurveyTransform)};
+        return {{}, {}, ValidationResult::Failure(ValidationCode::NonFiniteSurveyTransform)};
     }
 
     const double determinant = projectToSurvey.m00 * projectToSurvey.m11 -
                                projectToSurvey.m01 * projectToSurvey.m10;
     if (std::abs(determinant) <= 1.0e-12) {
-        return {{}, ValidationResult::Failure(ValidationCode::SingularSurveyTransform)};
+        return {{}, {}, ValidationResult::Failure(ValidationCode::SingularSurveyTransform)};
     }
 
     constexpr double rigidTolerance = 1.0e-9;
@@ -170,7 +171,7 @@ Validated<FloorPlanPlacement> ComputeFloorPlanPlacement(
                        projectToSurvey.m10 * projectToSurvey.m11;
     if (determinant < 0.0 || std::abs(column0Length - 1.0) > rigidTolerance ||
         std::abs(column1Length - 1.0) > rigidTolerance || std::abs(dot) > rigidTolerance) {
-        return {{}, ValidationResult::Failure(ValidationCode::NonRigidSurveyTransform)};
+        return {{}, {}, ValidationResult::Failure(ValidationCode::NonRigidSurveyTransform)};
     }
 
     const auto inverse = [&](Point2D survey) {
@@ -191,15 +192,13 @@ Validated<FloorPlanPlacement> ComputeFloorPlanPlacement(
         placement.localCorners.topLeft, placement.localCorners.topRight,
         placement.localCorners.bottomRight, placement.localCorners.bottomLeft
     };
+    SurveyPlacementDiagnostics diagnostics;
+    diagnostics.surveyPointProjectPosition = inverse({});
+    diagnostics.projectOriginSurveyCoordinates = {projectToSurvey.tx, projectToSurvey.ty};
     for (const Point2D corner : localCorners) {
-        if (Distance(corner) > maximumDistance) {
-            std::ostringstream distance;
-            distance.imbue(std::locale::classic());
-            distance << std::fixed << std::setprecision(3) << Distance(corner);
-            return {{}, ValidationResult::Failure(
-                ValidationCode::TooFarFromProjectOrigin, {distance.str()}
-            )};
-        }
+        diagnostics.maximumCornerDistance = std::max(
+            diagnostics.maximumCornerDistance, Distance(corner)
+        );
     }
 
     placement.anchor = placement.localCorners.bottomLeft;
@@ -209,7 +208,55 @@ Validated<FloorPlanPlacement> ComputeFloorPlanPlacement(
         placement.localCorners.bottomRight.y - placement.localCorners.bottomLeft.y,
         placement.localCorners.bottomRight.x - placement.localCorners.bottomLeft.x
     );
-    return {placement, ValidationResult::Success()};
+    if (diagnostics.maximumCornerDistance > maximumDistance) {
+        std::ostringstream distance;
+        distance.imbue(std::locale::classic());
+        distance << std::fixed << std::setprecision(3) << diagnostics.maximumCornerDistance;
+
+        const bool usableUnit = projectLengthUnit.available &&
+            std::isfinite(projectLengthUnit.metersPerUnit) &&
+            projectLengthUnit.metersPerUnit > 0.0;
+        if (usableUnit) {
+            const double suggestedScale = 1.0 / projectLengthUnit.metersPerUnit;
+            if (std::abs(suggestedScale - 1.0) > 1.0e-12) {
+                Affine2D correctedTransform = projectToSurvey;
+                correctedTransform.tx *= suggestedScale;
+                correctedTransform.ty *= suggestedScale;
+                const auto corrected = AnalyzeFloorPlanPlacement(
+                    surveyFootprint, correctedTransform, {}, maximumDistance
+                );
+                if (corrected.IsValid()) {
+                    diagnostics.suggestedSurveyPointScale = suggestedScale;
+                    return {
+                        {}, diagnostics,
+                        ValidationResult::Failure(
+                            ValidationCode::ProbableSurveyPointUnitMismatch,
+                            {distance.str()}
+                        )
+                    };
+                }
+            }
+        }
+        return {
+            {}, diagnostics,
+            ValidationResult::Failure(
+                ValidationCode::TooFarFromProjectOrigin, {distance.str()}
+            )
+        };
+    }
+    return {placement, diagnostics, ValidationResult::Success()};
+}
+
+Validated<FloorPlanPlacement> ComputeFloorPlanPlacement(
+    const WorldFootprint& surveyFootprint,
+    const Affine2D& projectToSurvey,
+    double maximumDistance
+)
+{
+    const auto analysis = AnalyzeFloorPlanPlacement(
+        surveyFootprint, projectToSurvey, {}, maximumDistance
+    );
+    return {analysis.placement, analysis.validation};
 }
 
 } // namespace GeoRaster

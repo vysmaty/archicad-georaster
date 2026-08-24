@@ -50,8 +50,28 @@ def test_worksheet_failures_report_the_exact_api_stage() -> None:
 
     for stage in (
         "CreateWorksheet",
-        "ChangeCurrentDatabase",
+        "ActivateWorksheet",
         "CallUndoable",
         "CreatePicture",
     ):
         assert f'errorStage = "{stage}"' in command
+
+
+def test_new_worksheet_is_activated_through_the_window_api() -> None:
+    compatibility = (ROOT / "src" / "compat" / "ArchicadCompatibility.cpp").read_text(
+        encoding="utf-8"
+    )
+
+    assert "ACAPI_Window_GetCurrentWindow" in compatibility
+    assert "ACAPI_Window_ChangeWindow" in compatibility
+    assert "ACAPI_Database_ChangeCurrentDatabase" not in compatibility
+
+
+def test_project_working_units_stay_behind_the_compatibility_boundary() -> None:
+    compatibility = (ROOT / "src" / "compat" / "ArchicadCompatibility.cpp").read_text(
+        encoding="utf-8"
+    )
+
+    assert "ACAPI_ProjectSetting_GetPreferences" in compatibility
+    assert "APIPrefs_WorkingUnitsID" in compatibility
+    assert "ACAPI_Conversion_GetConvertedUnitValue" in compatibility

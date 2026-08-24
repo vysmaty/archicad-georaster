@@ -226,30 +226,93 @@ void TestSurveyPlacement()
             GeoRaster::ValidationCode::TooFarFromProjectOrigin,
         "10 km safety limit is enforced"
     );
+
+    const GeoRaster::WorldFootprint sjtskFootprint {
+        {-744485.4539480666, -1042304.5288835835},
+        {-744000.0, -1042304.5288835835},
+        {-744000.0, -1042500.0},
+        {-744485.4539480666, -1042500.0}
+    };
+    GeoRaster::Affine2D millimetreSurveyPoint;
+    millimetreSurveyPoint.tx = -744.529;
+    millimetreSurveyPoint.ty = -1042.137;
+    const GeoRaster::LengthUnitInfo millimetres {0.001, "mm", true};
+    const auto unitMismatch = GeoRaster::AnalyzeFloorPlanPlacement(
+        sjtskFootprint, millimetreSurveyPoint, millimetres
+    );
+    Expect(
+        unitMismatch.validation.code ==
+            GeoRaster::ValidationCode::ProbableSurveyPointUnitMismatch,
+        "millimetre Survey Point values entered as metre coordinates are diagnosed"
+    );
+    Expect(
+        unitMismatch.diagnostics.suggestedSurveyPointScale &&
+            Near(*unitMismatch.diagnostics.suggestedSurveyPointScale, 1000.0),
+        "unit mismatch suggests the project-unit conversion factor"
+    );
+
+    const auto ExpectUnitScale = [&](double metersPerUnit, double expectedScale,
+                                     const std::string& symbol) {
+        GeoRaster::Affine2D transform;
+        transform.tx = -744529.0 * metersPerUnit;
+        transform.ty = -1042137.0 * metersPerUnit;
+        const auto analysis = GeoRaster::AnalyzeFloorPlanPlacement(
+            sjtskFootprint, transform, {metersPerUnit, symbol, true}
+        );
+        Expect(
+            analysis.validation.code ==
+                    GeoRaster::ValidationCode::ProbableSurveyPointUnitMismatch &&
+                analysis.diagnostics.suggestedSurveyPointScale &&
+                Near(*analysis.diagnostics.suggestedSurveyPointScale, expectedScale),
+            symbol + " project unit produces the correct diagnostic scale"
+        );
+    };
+    ExpectUnitScale(0.01, 100.0, "cm");
+    ExpectUnitScale(0.3048, 1.0 / 0.3048, "ft");
+
+    GeoRaster::Affine2D metreSurveyPoint;
+    metreSurveyPoint.tx = -744529.0;
+    metreSurveyPoint.ty = -1042137.0;
+    const GeoRaster::LengthUnitInfo metres {1.0, "m", true};
+    const auto corrected = GeoRaster::AnalyzeFloorPlanPlacement(
+        sjtskFootprint, metreSurveyPoint, metres
+    );
+    Expect(corrected.IsValid(), "correct S-JTSK Survey Point is accepted");
+    Expect(
+        corrected.placement && Near(corrected.placement->anchor.x, 43.5460519334, 1.0e-6) &&
+            Near(corrected.placement->anchor.y, -363.0, 1.0e-6),
+        "correct S-JTSK Survey Point places the raster near Project Origin"
+    );
 }
 
 void TestWorksheetRollback()
 {
     std::vector<std::string> events;
     const int original = 7;
-    const auto result = GeoRaster::RunWorksheetWorkflow<int, int>(
+    const auto result = GeoRaster::RunWorksheetWorkflow<int, std::string, int>(
         original,
         0,
-        [&](int& created) {
-            created = 9;
+        [&](std::string& created) {
+            created = "worksheet-9";
             events.emplace_back("create");
             return 0;
         },
-        [&](int& database) {
-            events.emplace_back(database == 9 ? "switch-new" : "restore-original");
+        [&](std::string& created) {
+            Expect(created == "worksheet-9", "new worksheet window is activated");
+            events.emplace_back("activate-new-window");
             return 0;
         },
         [&]() {
             events.emplace_back("insert-picture");
             return 42;
         },
-        [&](int& created) {
-            Expect(created == 9, "rollback deletes the newly created worksheet");
+        [&](const int& originalWindow) {
+            Expect(originalWindow == 7, "rollback restores the original window");
+            events.emplace_back("restore-original-window");
+            return 0;
+        },
+        [&](std::string& created) {
+            Expect(created == "worksheet-9", "rollback deletes the newly created worksheet");
             events.emplace_back("delete-new");
             return 0;
         }
@@ -257,9 +320,78 @@ void TestWorksheetRollback()
     Expect(result.primary == 42 && result.restore == 0 && result.cleanup == 0,
            "picture error is preserved after successful rollback");
     const std::vector<std::string> expected {
-        "create", "switch-new", "insert-picture", "restore-original", "delete-new"
+        "create", "activate-new-window", "insert-picture", "restore-original-window",
+        "delete-new"
     };
-    Expect(events == expected, "rollback restores original database before deleting worksheet");
+    Expect(events == expected, "rollback restores original window before deleting worksheet");
+
+    events.clear();
+    const auto success = GeoRaster::RunWorksheetWorkflow<int, std::string, int>(
+        original,
+        0,
+        [&](std::string& created) {
+            created = "worksheet-10";
+            events.emplace_back("create");
+            return 0;
+        },
+        [&](std::string&) {
+            events.emplace_back("activate-new-window");
+            return 0;
+        },
+        [&]() {
+            events.emplace_back("insert-picture");
+            return 0;
+        },
+        [&](const int&) {
+            events.emplace_back("unexpected-restore");
+            return 0;
+        },
+        [&](std::string&) {
+            events.emplace_back("unexpected-delete");
+            return 0;
+        }
+    );
+    Expect(success.primary == 0, "successful worksheet workflow preserves success");
+    Expect(
+        events == std::vector<std::string> {
+            "create", "activate-new-window", "insert-picture"
+        },
+        "successful worksheet workflow leaves the new window active"
+    );
+
+    events.clear();
+    const auto activationFailure = GeoRaster::RunWorksheetWorkflow<int, std::string, int>(
+        original,
+        0,
+        [&](std::string& created) {
+            created = "worksheet-11";
+            events.emplace_back("create");
+            return 0;
+        },
+        [&](std::string&) {
+            events.emplace_back("activate-new-window");
+            return 51;
+        },
+        [&]() {
+            events.emplace_back("unexpected-insert");
+            return 0;
+        },
+        [&](const int&) {
+            events.emplace_back("restore-original-window");
+            return 0;
+        },
+        [&](std::string&) {
+            events.emplace_back("delete-new");
+            return 0;
+        }
+    );
+    Expect(activationFailure.primary == 51, "worksheet activation error is preserved");
+    Expect(
+        events == std::vector<std::string> {
+            "create", "activate-new-window", "restore-original-window", "delete-new"
+        },
+        "activation failure restores the original window and removes the worksheet"
+    );
 }
 
 } // namespace

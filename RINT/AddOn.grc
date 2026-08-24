@@ -10,7 +10,7 @@
 /* [2] */ "Import georeferenced raster..."
 }
 
-'GDLG' ID_IMPORT_DIALOG Modal 120 100 600 390 "Import georeferenced raster" {
+'GDLG' ID_IMPORT_DIALOG Modal 120 100 600 480 "Import georeferenced raster" {
 /* [ 1] */ LeftText      12  14  100  22 LargePlain vCenter "Raster:"
 /* [ 2] */ TextEdit     112  14  390  22 LargePlain 1024
 /* [ 3] */ Button       512  14   76  22 LargePlain "Browse..."
@@ -19,9 +19,9 @@
 /* [ 6] */ Button       512  48   76  22 LargePlain "Browse..."
 /* [ 7] */ RadioButton   12  86  220  22 LargePlain 1 "New Worksheet"
 /* [ 8] */ RadioButton  250  86  260  22 LargePlain 1 "Active Floor Plan"
-/* [ 9] */ LeftText      12 122  576 210 SmallPlain "Select a raster to begin."
-/* [10] */ Button       512 354   76  24 LargePlain "Import"
-/* [11] */ Button       424 354   76  24 LargePlain "Cancel"
+/* [ 9] */ LeftText      12 122  576 300 SmallPlain "Select a raster to begin."
+/* [10] */ Button       512 444   76  24 LargePlain "Import"
+/* [11] */ Button       424 444   76  24 LargePlain "Cancel"
 }
 
 'DLGH' ID_IMPORT_DIALOG DLG_GeoRaster_Import {
@@ -77,6 +77,13 @@
 /* [36] */ "GeoRaster – "
 /* [37] */ "Graphisoft API error:"
 /* [38] */ "Step:"
+/* [39] */ "Project working length unit"
+/* [40] */ "Survey Point position"
+/* [41] */ "in metres"
+/* [42] */ "Project Origin in Survey Point coordinates"
+/* [43] */ "The Survey Point was probably entered in project units as if they were metres. Distance:"
+/* [44] */ "Suggested Survey Point position"
+/* [45] */ "unavailable; displayed in metres"
 }
 
 'MDID' 32500 "Add-On Identifier" {

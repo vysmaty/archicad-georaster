@@ -62,7 +62,7 @@ std::optional<PreparedImport> Prepare(const GeoRasterUI::ImportRequest& request)
 GSErrCode ImportToWorksheet(
     const GeoRasterUI::ImportRequest& request,
     const PreparedImport& prepared,
-    API_DatabaseInfo& originalDatabase,
+    const API_WindowInfo& originalWindow,
     const API_Element& pictureDefaults,
     GS::UniString& errorStage
 )
@@ -75,16 +75,18 @@ GSErrCode ImportToWorksheet(
     }
     const GS::UniString name = Text(36) + GS::ToUniString(request.rasterPath.stem().wstring());
 
-    const auto workflow = GeoRaster::RunWorksheetWorkflow<API_DatabaseInfo, GSErrCode>(
-        originalDatabase,
+    const auto workflow = GeoRaster::RunWorksheetWorkflow<
+        API_WindowInfo, ACCompat::WorksheetHandle, GSErrCode
+    >(
+        originalWindow,
         NoError,
-        [&](API_DatabaseInfo& worksheet) {
+        [&](ACCompat::WorksheetHandle& worksheet) {
             errorStage = "CreateWorksheet";
             return ACCompat::CreateWorksheet(reference, name, worksheet);
         },
-        [&](API_DatabaseInfo& database) {
-            errorStage = "ChangeCurrentDatabase";
-            return ACCompat::ChangeCurrentDatabase(database);
+        [&](ACCompat::WorksheetHandle& worksheet) {
+            errorStage = "ActivateWorksheet";
+            return ACCompat::ActivateWindow(worksheet.window);
         },
         [&]() {
             errorStage = "CallUndoable";
@@ -101,7 +103,10 @@ GSErrCode ImportToWorksheet(
                 );
             });
         },
-        [&](API_DatabaseInfo& worksheet) {
+        [&](const API_WindowInfo& window) {
+            return ACCompat::ActivateWindow(window);
+        },
+        [&](ACCompat::WorksheetHandle& worksheet) {
             return ACCompat::DeleteWorksheet(worksheet);
         }
     );
@@ -139,8 +144,8 @@ GSErrCode ImportToFloorPlan(
 
 void Run()
 {
-    API_DatabaseInfo originalDatabase {};
-    GSErrCode error = ACCompat::GetCurrentDatabase(originalDatabase);
+    API_WindowInfo originalWindow {};
+    GSErrCode error = ACCompat::GetCurrentWindow(originalWindow);
     if (error != NoError) {
         ShowError(Text(37) + " " + ACCompat::ErrorText(error));
         return;
@@ -153,7 +158,7 @@ void Run()
         return;
     }
 
-    const bool invokedFromFloorPlan = originalDatabase.typeID == APIWind_FloorPlanID;
+    const bool invokedFromFloorPlan = originalWindow.typeID == APIWind_FloorPlanID;
     std::optional<GeoRaster::Affine2D> projectToSurvey;
     if (invokedFromFloorPlan) {
         GeoRaster::Affine2D transform;
@@ -162,7 +167,15 @@ void Run()
         }
     }
 
-    GeoRasterUI::ImportDialog dialog(invokedFromFloorPlan && projectToSurvey.has_value(), projectToSurvey);
+    std::optional<GeoRaster::LengthUnitInfo> projectLengthUnit;
+    GeoRaster::LengthUnitInfo unit;
+    if (ACCompat::GetProjectLengthUnit(unit) == NoError) {
+        projectLengthUnit = unit;
+    }
+
+    GeoRasterUI::ImportDialog dialog(
+        invokedFromFloorPlan && projectToSurvey.has_value(), projectToSurvey, projectLengthUnit
+    );
     if (!dialog.Invoke()) {
         return;
     }
@@ -175,7 +188,7 @@ void Run()
     GS::UniString errorStage;
     if (request.target == GeoRasterUI::ImportTarget::NewWorksheet) {
         error = ImportToWorksheet(
-            request, *prepared, originalDatabase, pictureDefaults, errorStage
+            request, *prepared, originalWindow, pictureDefaults, errorStage
         );
     } else {
         if (!invokedFromFloorPlan || !projectToSurvey) {

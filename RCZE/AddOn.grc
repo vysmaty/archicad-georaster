@@ -10,7 +10,7 @@
 /* [2] */ "Importovat georeferencovaný rastr..."
 }
 
-'GDLG' ID_IMPORT_DIALOG Modal 120 100 600 390 "Import georeferencovaného rastru" {
+'GDLG' ID_IMPORT_DIALOG Modal 120 100 600 480 "Import georeferencovaného rastru" {
 /* [ 1] */ LeftText      12  14  100  22 LargePlain vCenter "Rastr:"
 /* [ 2] */ TextEdit     112  14  390  22 LargePlain 1024
 /* [ 3] */ Button       512  14   76  22 LargePlain "Vybrat..."
@@ -19,9 +19,9 @@
 /* [ 6] */ Button       512  48   76  22 LargePlain "Vybrat..."
 /* [ 7] */ RadioButton   12  86  220  22 LargePlain 1 "Nový Worksheet"
 /* [ 8] */ RadioButton  250  86  260  22 LargePlain 1 "Aktivní půdorys"
-/* [ 9] */ LeftText      12 122  576 210 SmallPlain "Začněte výběrem rastru."
-/* [10] */ Button       512 354   76  24 LargePlain "Importovat"
-/* [11] */ Button       424 354   76  24 LargePlain "Zrušit"
+/* [ 9] */ LeftText      12 122  576 300 SmallPlain "Začněte výběrem rastru."
+/* [10] */ Button       512 444   76  24 LargePlain "Importovat"
+/* [11] */ Button       424 444   76  24 LargePlain "Zrušit"
 }
 
 'DLGH' ID_IMPORT_DIALOG DLG_GeoRaster_Import {
@@ -77,6 +77,13 @@
 /* [36] */ "GeoRaster – "
 /* [37] */ "Chyba Graphisoft API:"
 /* [38] */ "Krok:"
+/* [39] */ "Pracovní jednotka projektu"
+/* [40] */ "Poloha Survey Pointu"
+/* [41] */ "v metrech"
+/* [42] */ "Project Origin v souřadnicích Survey Pointu"
+/* [43] */ "Survey Point je pravděpodobně zadaný v projektových jednotkách, jako by šlo o metry. Vzdálenost:"
+/* [44] */ "Doporučená poloha Survey Pointu"
+/* [45] */ "nelze načíst; zobrazeno v metrech"
 }
 
 'MDID' 32500 "Identifikátor doplňku" {

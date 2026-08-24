@@ -23,7 +23,11 @@ class ImportDialog final : public DG::ModalDialog,
                            public DG::RadioItemObserver,
                            public DG::TextEditBaseObserver {
 public:
-    ImportDialog(bool floorPlanAvailable, std::optional<GeoRaster::Affine2D> projectToSurvey);
+    ImportDialog(
+        bool floorPlanAvailable,
+        std::optional<GeoRaster::Affine2D> projectToSurvey,
+        std::optional<GeoRaster::LengthUnitInfo> projectLengthUnit
+    );
     ~ImportDialog() override;
 
     [[nodiscard]] ImportRequest GetRequest() const;
@@ -56,6 +60,8 @@ private:
     void SetPath(DG::TextEdit& edit, const std::filesystem::path& path);
     std::filesystem::path GetPath(const DG::TextEdit& edit) const;
     GS::UniString ValidationMessage(const GeoRaster::ValidationResult& validation) const;
+    GS::UniString ProjectLength(double meters) const;
+    GS::UniString ProjectPoint(GeoRaster::Point2D point) const;
 
     DG::TextEdit rasterEdit;
     DG::Button rasterBrowse;
@@ -68,6 +74,7 @@ private:
     DG::Button cancelButton;
     bool floorPlanAvailable;
     std::optional<GeoRaster::Affine2D> projectToSurvey;
+    std::optional<GeoRaster::LengthUnitInfo> projectLengthUnit;
     GeoRaster::WorldFileDiscovery discovery;
     bool internalEdit = false;
 };

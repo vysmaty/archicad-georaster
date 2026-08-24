@@ -29,7 +29,8 @@ GS::UniString Number(double value, int precision = 3)
 
 ImportDialog::ImportDialog(
     bool floorPlanAvailable,
-    std::optional<GeoRaster::Affine2D> projectToSurvey
+    std::optional<GeoRaster::Affine2D> projectToSurvey,
+    std::optional<GeoRaster::LengthUnitInfo> projectLengthUnit
 )
     : DG::ModalDialog(ACCompat::OwnResourceModule(), ID_IMPORT_DIALOG, InvalidResModule),
       rasterEdit(GetReference(), RasterEditId),
@@ -42,7 +43,8 @@ ImportDialog::ImportDialog(
       importButton(GetReference(), ImportButtonId),
       cancelButton(GetReference(), CancelButtonId),
       floorPlanAvailable(floorPlanAvailable),
-      projectToSurvey(std::move(projectToSurvey))
+      projectToSurvey(std::move(projectToSurvey)),
+      projectLengthUnit(std::move(projectLengthUnit))
 {
     rasterBrowse.Attach(*this);
     worldFileBrowse.Attach(*this);
@@ -203,14 +205,39 @@ void ImportDialog::RefreshValidation()
             previewText.SetText(ResourceText(9));
             return;
         }
-        const auto placement = GeoRaster::ComputeFloorPlanPlacement(footprint, *projectToSurvey);
-        if (!placement.IsValid()) {
-            previewText.SetText(ValidationMessage(placement.validation));
+        preview += "\n" + ResourceText(39) + ": " + (
+            projectLengthUnit ? GS::UniString(projectLengthUnit->symbol.c_str(), CC_UTF8)
+                              : ResourceText(45)
+        );
+        const auto analysis = GeoRaster::AnalyzeFloorPlanPlacement(
+            footprint, *projectToSurvey, projectLengthUnit.value_or(GeoRaster::LengthUnitInfo {})
+        );
+        preview += "\n" + ResourceText(40) + ": " +
+                   ProjectPoint(analysis.diagnostics.surveyPointProjectPosition);
+        preview += " (" + ResourceText(41) + ": " +
+                   Number(analysis.diagnostics.surveyPointProjectPosition.x) + ", " +
+                   Number(analysis.diagnostics.surveyPointProjectPosition.y) + " m)";
+        preview += "\n" + ResourceText(42) + ": " +
+                   Number(analysis.diagnostics.projectOriginSurveyCoordinates.x) + ", " +
+                   Number(analysis.diagnostics.projectOriginSurveyCoordinates.y) + " m";
+        if (!analysis.IsValid()) {
+            preview += "\n" + ValidationMessage(analysis.validation);
+            if (analysis.diagnostics.suggestedSurveyPointScale) {
+                const double scale = *analysis.diagnostics.suggestedSurveyPointScale;
+                const GeoRaster::Point2D suggested {
+                    analysis.diagnostics.surveyPointProjectPosition.x * scale,
+                    analysis.diagnostics.surveyPointProjectPosition.y * scale
+                };
+                preview += "\n" + ResourceText(44) + ": " + ProjectPoint(suggested) +
+                           " (" + Number(suggested.x) + ", " + Number(suggested.y) + " m)";
+            }
+            previewText.SetText(preview);
             return;
         }
-        preview += "\n" + ResourceText(10) + ": " + Number(placement.value->anchor.x) + ", " +
-                   Number(placement.value->anchor.y) + " m; " + ResourceText(11) + ": " +
-                   Number(placement.value->rotation * 180.0 / 3.14159265358979323846, 2) + " deg";
+        preview += "\n" + ResourceText(10) + ": " + Number(analysis.placement->anchor.x) + ", " +
+                   Number(analysis.placement->anchor.y) + " m; " + ResourceText(11) + ": " +
+                   Number(analysis.placement->rotation * 180.0 / 3.14159265358979323846, 2) +
+                   " deg";
     }
     preview += "\n" + ResourceText(12);
     previewText.SetText(preview);
@@ -227,6 +254,20 @@ void ImportDialog::SetPath(DG::TextEdit& edit, const std::filesystem::path& path
 std::filesystem::path ImportDialog::GetPath(const DG::TextEdit& edit) const
 {
     return std::filesystem::path(GS::ToWString(edit.GetText()));
+}
+
+GS::UniString ImportDialog::ProjectLength(double meters) const
+{
+    GS::UniString formatted;
+    if (projectLengthUnit && ACCompat::FormatProjectLength(meters, formatted) == NoError) {
+        return formatted;
+    }
+    return Number(meters) + " m";
+}
+
+GS::UniString ImportDialog::ProjectPoint(GeoRaster::Point2D point) const
+{
+    return ProjectLength(point.x) + ", " + ProjectLength(point.y);
 }
 
 GS::UniString ImportDialog::ValidationMessage(const GeoRaster::ValidationResult& validation) const
@@ -247,6 +288,9 @@ GS::UniString ImportDialog::ValidationMessage(const GeoRaster::ValidationResult&
         case GeoRaster::ValidationCode::NonFiniteSurveyTransform: resourceIndex = 24; break;
         case GeoRaster::ValidationCode::NonRigidSurveyTransform: resourceIndex = 25; break;
         case GeoRaster::ValidationCode::SingularSurveyTransform: resourceIndex = 26; break;
+        case GeoRaster::ValidationCode::ProbableSurveyPointUnitMismatch:
+            resourceIndex = 43;
+            break;
         case GeoRaster::ValidationCode::TooFarFromProjectOrigin: resourceIndex = 27; break;
         default: resourceIndex = 28; break;
     }

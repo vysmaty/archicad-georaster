@@ -9,24 +9,25 @@ struct WorksheetWorkflowResult {
     Error cleanup;
 };
 
-template<typename Database, typename Error, typename Create, typename Change, typename Insert,
-         typename Remove>
+template<typename OriginalWindow, typename CreatedWorksheet, typename Error, typename Create,
+         typename Activate, typename Insert, typename Restore, typename Remove>
 WorksheetWorkflowResult<Error> RunWorksheetWorkflow(
-    const Database& original,
+    const OriginalWindow& original,
     Error success,
     Create&& create,
-    Change&& change,
+    Activate&& activate,
     Insert&& insert,
+    Restore&& restore,
     Remove&& remove
 )
 {
-    Database created {};
+    CreatedWorksheet created {};
     Error primary = create(created);
     if (primary != success) {
         return {primary, success, success};
     }
 
-    primary = change(created);
+    primary = activate(created);
     if (primary == success) {
         primary = insert();
     }
@@ -34,10 +35,9 @@ WorksheetWorkflowResult<Error> RunWorksheetWorkflow(
         return {success, success, success};
     }
 
-    Database originalCopy = original;
-    const Error restore = change(originalCopy);
+    const Error restoreError = restore(original);
     const Error cleanup = remove(created);
-    return {primary, restore, cleanup};
+    return {primary, restoreError, cleanup};
 }
 
 } // namespace GeoRaster
