@@ -2,13 +2,18 @@
 
 Native C++ Add-On for Archicad 27–29 that imports one north-up PNG or JPEG with a World File.
 
+![GeoRaster import dialog](screenshot.png)
+
 The **GeoRaster → Import georeferenced raster...** command supports:
 
 - a new independent Worksheet, the active Worksheet or a selected existing Worksheet; rasters use
   their absolute World File coordinates;
 - the active Floor Plan, using the inverse of Archicad's native Survey Point transformation.
 
-The first slice deliberately rejects World File rotation, shear, mirroring, zero scale, non-finite values and Floor Plan placements more than 10,000 m from Project Origin. TIFF, GeoTIFF, batch import, CRS reprojection and distributed builds are outside this version.
+> **Out of scope:** GeoRaster deliberately rejects World File rotation, shear, mirroring, zero
+> scale, non-finite values and Floor Plan placements more than 10,000 m from Project Origin. TIFF,
+> GeoTIFF, batch import, CRS reprojection and distributed builds are not part of this version, and
+> there are currently no plans to implement them.
 
 ## Build
 
