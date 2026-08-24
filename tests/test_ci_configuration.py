@@ -43,6 +43,7 @@ def test_version_tags_publish_all_czech_release_addons() -> None:
     assert "needs: [python-quality, build]" in workflow
     assert "contents: write" in workflow
     assert "GH_TOKEN: ${{ github.token }}" in workflow
+    assert "Check out tagged source for release notes" in workflow
     for version in (27, 28, 29):
         assert f"GeoRaster-AC{version}-Release-CZE" in workflow
     assert "GeoRaster-AC$version-Release-CZE.apx" in workflow

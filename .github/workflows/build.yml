@@ -89,6 +89,8 @@ jobs:
     permissions:
       contents: write
     steps:
+      - name: Check out tagged source for release notes
+        uses: actions/checkout@v7.0.1
       - name: Download AC27 CZE Release Add-On
         uses: actions/download-artifact@v5
         with:
