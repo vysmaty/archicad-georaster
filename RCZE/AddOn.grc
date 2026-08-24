@@ -79,6 +79,6 @@
 }
 
 'MDID' 32500 "Identifikátor doplňku" {
-    1
-    1
+    @GEORASTER_DEVELOPER_ID@
+    @GEORASTER_LOCAL_ID@
 }

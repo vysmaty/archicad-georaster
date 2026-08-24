@@ -49,8 +49,50 @@ endif()
 # Local builds are private by default. A release pipeline must explicitly enable this.
 set(AC_ADDON_FOR_DISTRIBUTION OFF CACHE BOOL "Mark the Add-On for distribution")
 
+# MDID values identify the Add-On embedded in its binary. They are intentionally
+# read from the build environment so the checked-in resource files never contain
+# the Graphisoft-issued values. Forks and local developer builds have no secrets
+# and therefore use the reserved development identity 1/1.
+set(GEORASTER_DEVELOPER_ID "$ENV{GRAPHISOFT_DEVELOPER_ID}")
+set(GEORASTER_LOCAL_ID "$ENV{GRAPHISOFT_LOCAL_ID}")
+
+if(GEORASTER_DEVELOPER_ID STREQUAL "" AND GEORASTER_LOCAL_ID STREQUAL "")
+    set(GEORASTER_DEVELOPER_ID 1)
+    set(GEORASTER_LOCAL_ID 1)
+elseif(GEORASTER_DEVELOPER_ID STREQUAL "" OR GEORASTER_LOCAL_ID STREQUAL "")
+    message(FATAL_ERROR "GRAPHISOFT_DEVELOPER_ID and GRAPHISOFT_LOCAL_ID must either both be set or both be empty.")
+endif()
+
+foreach(GEORASTER_MDID_VALUE IN ITEMS "${GEORASTER_DEVELOPER_ID}" "${GEORASTER_LOCAL_ID}")
+    if(NOT GEORASTER_MDID_VALUE MATCHES "^[0-9]+$")
+        message(FATAL_ERROR "GeoRaster MDID values must be decimal integers.")
+    endif()
+endforeach()
+
+# The Graphisoft resource compiler accepts one resource root. Copy the ordinary
+# resources to a build-only root and configure the MDID placeholders there.
+set(GEORASTER_GENERATED_RESOURCES_FOLDER "${CMAKE_CURRENT_BINARY_DIR}/GeneratedResources")
+file(COPY
+    "${CMAKE_CURRENT_SOURCE_DIR}/RFIX.win"
+    DESTINATION "${GEORASTER_GENERATED_RESOURCES_FOLDER}"
+)
+foreach(GEORASTER_LANGUAGE IN ITEMS CZE INT)
+    file(MAKE_DIRECTORY "${GEORASTER_GENERATED_RESOURCES_FOLDER}/R${GEORASTER_LANGUAGE}")
+    configure_file(
+        "${CMAKE_CURRENT_SOURCE_DIR}/R${GEORASTER_LANGUAGE}/AddOn.grc"
+        "${GEORASTER_GENERATED_RESOURCES_FOLDER}/R${GEORASTER_LANGUAGE}/AddOn.grc"
+        @ONLY
+    )
+endforeach()
+file(
+    RELATIVE_PATH
+    GEORASTER_GENERATED_RESOURCES_FOLDER_RELATIVE
+    "${CMAKE_CURRENT_SOURCE_DIR}"
+    "${GEORASTER_GENERATED_RESOURCES_FOLDER}"
+)
+
 set(AddOnSourcesFolder src)
-set(AddOnResourcesFolder .)
+set(AddOnResourcesFolder "${GEORASTER_GENERATED_RESOURCES_FOLDER_RELATIVE}")
 set(PCH_HEADER "src/GeoRasterPrecompiledHeader.hpp")
 
 # The Graphisoft resource compiler requires a non-empty positional path even

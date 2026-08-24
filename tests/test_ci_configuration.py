@@ -74,9 +74,20 @@ def test_local_build_identity_and_python_non_package_mode_are_locked() -> None:
 
     assert "AC_ADDON_FOR_DISTRIBUTION OFF" in cmake
     assert resources.count("'MDID' 32500") == 2
-    assert resources.count("\n    1\n    1\n") == 2
+    assert resources.count("@GEORASTER_DEVELOPER_ID@") == 2
+    assert resources.count("@GEORASTER_LOCAL_ID@") == 2
+    assert "GRAPHISOFT_DEVELOPER_ID and GRAPHISOFT_LOCAL_ID must either both be set" in cmake
+    assert "GEORASTER_GENERATED_RESOURCES_FOLDER" in cmake
     assert "package = false" in pyproject
     assert "[build-system]" not in pyproject
+
+
+def test_ci_passes_mdid_secrets_only_to_the_build_step() -> None:
+    workflow = (ROOT / ".github" / "workflows" / "build.yml").read_text(encoding="utf-8")
+
+    assert "GRAPHISOFT_DEVELOPER_ID: ${{ secrets.GRAPHISOFT_DEVELOPER_ID }}" in workflow
+    assert "GRAPHISOFT_LOCAL_ID: ${{ secrets.GRAPHISOFT_LOCAL_ID }}" in workflow
+    assert "pull_request_target:" not in workflow
 
 
 def test_scheduled_updates_only_open_a_review_pr() -> None:

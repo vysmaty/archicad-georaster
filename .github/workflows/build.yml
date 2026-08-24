@@ -67,6 +67,9 @@ jobs:
         run: .\tools\bootstrap.ps1 -Version ${{ matrix.version }}
       - name: Configure and build
         shell: pwsh
+        env:
+          GRAPHISOFT_DEVELOPER_ID: ${{ secrets.GRAPHISOFT_DEVELOPER_ID }}
+          GRAPHISOFT_LOCAL_ID: ${{ secrets.GRAPHISOFT_LOCAL_ID }}
         run: .\tools\build.ps1 -Version ${{ matrix.version }} -Configuration ${{ matrix.configuration }} -Language ${{ matrix.language }}
       - uses: actions/upload-artifact@v7.0.1
         with:
