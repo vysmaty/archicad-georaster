@@ -33,16 +33,15 @@ def test_core_has_no_archicad_dependency() -> None:
     assert "API_Element" not in core_text
 
 
-def test_picture_defaults_are_read_before_switching_to_a_worksheet_database() -> None:
+def test_picture_defaults_are_read_in_the_active_target_database() -> None:
     command = (ROOT / "src" / "GeoRasterCommand.cpp").read_text(encoding="utf-8")
     compatibility = (ROOT / "src" / "compat" / "ArchicadCompatibility.cpp").read_text(
         encoding="utf-8"
     )
 
-    assert "ACCompat::GetPictureDefaults(pictureDefaults)" in command
-    assert "const API_Element& defaults" in compatibility
     create_picture = compatibility[compatibility.index("GSErrCode CreatePicture(") :]
-    assert "ACAPI_Element_GetDefaults" not in create_picture
+    assert "ACAPI_Element_GetDefaults(&element, nullptr)" in create_picture
+    assert "GetPictureDefaults" not in command
 
 
 def test_worksheet_failures_report_the_exact_api_stage() -> None:
@@ -55,6 +54,14 @@ def test_worksheet_failures_report_the_exact_api_stage() -> None:
         "CreatePicture",
     ):
         assert f'errorStage = "{stage}"' in command
+
+
+def test_bad_index_error_is_named_for_user_diagnostics() -> None:
+    compatibility = (ROOT / "src" / "compat" / "ArchicadCompatibility.cpp").read_text(
+        encoding="utf-8"
+    )
+
+    assert "APIERR_BADINDEX" in compatibility
 
 
 def test_new_worksheet_is_activated_through_the_window_api() -> None:

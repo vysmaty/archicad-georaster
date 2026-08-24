@@ -63,7 +63,6 @@ GSErrCode ImportToWorksheet(
     const GeoRasterUI::ImportRequest& request,
     const PreparedImport& prepared,
     const API_WindowInfo& originalWindow,
-    const API_Element& pictureDefaults,
     GS::UniString& errorStage
 )
 {
@@ -93,7 +92,6 @@ GSErrCode ImportToWorksheet(
             return ACCompat::CallUndoable(Text(34), [&]() {
                 errorStage = "CreatePicture";
                 return ACCompat::CreatePicture(
-                    pictureDefaults,
                     prepared.raster,
                     prepared.bytes,
                     placement.localBounds.minimum,
@@ -119,7 +117,7 @@ GSErrCode ImportToWorksheet(
 GSErrCode ImportToFloorPlan(
     const PreparedImport& prepared,
     const GeoRaster::Affine2D& projectToSurvey,
-    const API_Element& pictureDefaults
+    GS::UniString& errorStage
 )
 {
     const auto placement = GeoRaster::ComputeFloorPlanPlacement(prepared.footprint, projectToSurvey);
@@ -128,8 +126,8 @@ GSErrCode ImportToFloorPlan(
         return APIERR_BADPARS;
     }
     return ACCompat::CallUndoable(Text(34), [&]() {
+        errorStage = "CreatePicture";
         return ACCompat::CreatePicture(
-            pictureDefaults,
             prepared.raster,
             prepared.bytes,
             placement.value->anchor,
@@ -146,13 +144,6 @@ void Run()
 {
     API_WindowInfo originalWindow {};
     GSErrCode error = ACCompat::GetCurrentWindow(originalWindow);
-    if (error != NoError) {
-        ShowError(Text(37) + " " + ACCompat::ErrorText(error));
-        return;
-    }
-
-    API_Element pictureDefaults {};
-    error = ACCompat::GetPictureDefaults(pictureDefaults);
     if (error != NoError) {
         ShowError(Text(37) + " " + ACCompat::ErrorText(error));
         return;
@@ -188,14 +179,14 @@ void Run()
     GS::UniString errorStage;
     if (request.target == GeoRasterUI::ImportTarget::NewWorksheet) {
         error = ImportToWorksheet(
-            request, *prepared, originalWindow, pictureDefaults, errorStage
+            request, *prepared, originalWindow, errorStage
         );
     } else {
         if (!invokedFromFloorPlan || !projectToSurvey) {
             ShowError(Text(9));
             return;
         }
-        error = ImportToFloorPlan(*prepared, *projectToSurvey, pictureDefaults);
+        error = ImportToFloorPlan(*prepared, *projectToSurvey, errorStage);
     }
     if (error != NoError) {
         GS::UniString message = Text(37) + " " + ACCompat::ErrorText(error);

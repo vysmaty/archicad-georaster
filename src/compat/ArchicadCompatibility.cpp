@@ -36,13 +36,6 @@ GSErrCode ActivateWindow(const API_WindowInfo& window)
     return ACAPI_Window_ChangeWindow(&window);
 }
 
-GSErrCode GetPictureDefaults(API_Element& element)
-{
-    element = {};
-    element.header.type = API_PictureID;
-    return ACAPI_Element_GetDefaults(&element, nullptr);
-}
-
 GSErrCode CreateWorksheet(
     const GS::UniString& reference,
     const GS::UniString& name,
@@ -156,7 +149,6 @@ GSErrCode FormatProjectLength(double meters, GS::UniString& formatted)
 }
 
 GSErrCode CreatePicture(
-    const API_Element& defaults,
     const GeoRaster::RasterInfo& raster,
     const std::vector<std::byte>& bytes,
     GeoRaster::Point2D anchor,
@@ -169,8 +161,12 @@ GSErrCode CreatePicture(
         return APIERR_BADPARS;
     }
 
-    API_Element element = defaults;
-    GSErrCode error = NoError;
+    API_Element element {};
+    element.header.type = API_PictureID;
+    GSErrCode error = ACAPI_Element_GetDefaults(&element, nullptr);
+    if (error != NoError) {
+        return error;
+    }
 
     element.picture.usePixelSize = false;
     element.picture.mirrored = false;
@@ -205,6 +201,9 @@ GSErrCode CallUndoable(const GS::UniString& label, const std::function<GSErrCode
 
 GS::UniString ErrorText(GSErrCode error)
 {
+    if (error == APIERR_BADINDEX) {
+        return GS::UniString::Printf("APIERR_BADINDEX (%d)", error);
+    }
     if (error == APIERR_BADDATABASE) {
         return GS::UniString::Printf("APIERR_BADDATABASE (%d)", error);
     }
