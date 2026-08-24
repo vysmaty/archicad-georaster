@@ -151,6 +151,9 @@ GSErrCode CallUndoable(const GS::UniString& label, const std::function<GSErrCode
 
 GS::UniString ErrorText(GSErrCode error)
 {
+    if (error == APIERR_BADDATABASE) {
+        return GS::UniString::Printf("APIERR_BADDATABASE (%d)", error);
+    }
     return GS::UniString::Printf("%d", error);
 }
 

@@ -63,7 +63,8 @@ GSErrCode ImportToWorksheet(
     const GeoRasterUI::ImportRequest& request,
     const PreparedImport& prepared,
     API_DatabaseInfo& originalDatabase,
-    const API_Element& pictureDefaults
+    const API_Element& pictureDefaults,
+    GS::UniString& errorStage
 )
 {
     const auto placement = GeoRaster::ComputeWorksheetPlacement(prepared.footprint);
@@ -78,22 +79,26 @@ GSErrCode ImportToWorksheet(
         originalDatabase,
         NoError,
         [&](API_DatabaseInfo& worksheet) {
+            errorStage = "CreateWorksheet";
             return ACCompat::CreateWorksheet(reference, name, worksheet);
         },
         [&](API_DatabaseInfo& database) {
+            errorStage = "ChangeCurrentDatabase";
             return ACCompat::ChangeCurrentDatabase(database);
         },
         [&]() {
+            errorStage = "CallUndoable";
             return ACCompat::CallUndoable(Text(34), [&]() {
-            return ACCompat::CreatePicture(
-                pictureDefaults,
-                prepared.raster,
-                prepared.bytes,
-                placement.localBounds.minimum,
-                placement.localBounds.maximum.x,
-                placement.localBounds.maximum.y,
-                0.0
-            );
+                errorStage = "CreatePicture";
+                return ACCompat::CreatePicture(
+                    pictureDefaults,
+                    prepared.raster,
+                    prepared.bytes,
+                    placement.localBounds.minimum,
+                    placement.localBounds.maximum.x,
+                    placement.localBounds.maximum.y,
+                    0.0
+                );
             });
         },
         [&](API_DatabaseInfo& worksheet) {
@@ -167,8 +172,11 @@ void Run()
         return;
     }
 
+    GS::UniString errorStage;
     if (request.target == GeoRasterUI::ImportTarget::NewWorksheet) {
-        error = ImportToWorksheet(request, *prepared, originalDatabase, pictureDefaults);
+        error = ImportToWorksheet(
+            request, *prepared, originalDatabase, pictureDefaults, errorStage
+        );
     } else {
         if (!invokedFromFloorPlan || !projectToSurvey) {
             ShowError(Text(9));
@@ -177,7 +185,11 @@ void Run()
         error = ImportToFloorPlan(*prepared, *projectToSurvey, pictureDefaults);
     }
     if (error != NoError) {
-        ShowError(Text(37) + " " + ACCompat::ErrorText(error));
+        GS::UniString message = Text(37) + " " + ACCompat::ErrorText(error);
+        if (!errorStage.IsEmpty()) {
+            message += "\n" + Text(38) + " " + errorStage;
+        }
+        ShowError(message);
     }
 }
 

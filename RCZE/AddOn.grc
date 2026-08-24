@@ -76,6 +76,7 @@
 /* [35] */ "Umístění do půdorysu neprošlo bezpečnostní kontrolou Survey Pointu."
 /* [36] */ "GeoRaster – "
 /* [37] */ "Chyba Graphisoft API:"
+/* [38] */ "Krok:"
 }
 
 'MDID' 32500 "Identifikátor doplňku" {

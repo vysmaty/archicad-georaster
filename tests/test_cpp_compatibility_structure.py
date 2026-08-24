@@ -43,3 +43,15 @@ def test_picture_defaults_are_read_before_switching_to_a_worksheet_database() ->
     assert "const API_Element& defaults" in compatibility
     create_picture = compatibility[compatibility.index("GSErrCode CreatePicture(") :]
     assert "ACAPI_Element_GetDefaults" not in create_picture
+
+
+def test_worksheet_failures_report_the_exact_api_stage() -> None:
+    command = (ROOT / "src" / "GeoRasterCommand.cpp").read_text(encoding="utf-8")
+
+    for stage in (
+        "CreateWorksheet",
+        "ChangeCurrentDatabase",
+        "CallUndoable",
+        "CreatePicture",
+    ):
+        assert f'errorStage = "{stage}"' in command
