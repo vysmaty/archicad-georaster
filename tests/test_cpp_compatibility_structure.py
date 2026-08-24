@@ -31,3 +31,15 @@ def test_core_has_no_archicad_dependency() -> None:
 
     assert "ACAPI_" not in core_text
     assert "API_Element" not in core_text
+
+
+def test_picture_defaults_are_read_before_switching_to_a_worksheet_database() -> None:
+    command = (ROOT / "src" / "GeoRasterCommand.cpp").read_text(encoding="utf-8")
+    compatibility = (ROOT / "src" / "compat" / "ArchicadCompatibility.cpp").read_text(
+        encoding="utf-8"
+    )
+
+    assert "ACCompat::GetPictureDefaults(pictureDefaults)" in command
+    assert "const API_Element& defaults" in compatibility
+    create_picture = compatibility[compatibility.index("GSErrCode CreatePicture(") :]
+    assert "ACAPI_Element_GetDefaults" not in create_picture

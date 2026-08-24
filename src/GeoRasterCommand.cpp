@@ -62,7 +62,8 @@ std::optional<PreparedImport> Prepare(const GeoRasterUI::ImportRequest& request)
 GSErrCode ImportToWorksheet(
     const GeoRasterUI::ImportRequest& request,
     const PreparedImport& prepared,
-    API_DatabaseInfo& originalDatabase
+    API_DatabaseInfo& originalDatabase,
+    const API_Element& pictureDefaults
 )
 {
     const auto placement = GeoRaster::ComputeWorksheetPlacement(prepared.footprint);
@@ -85,6 +86,7 @@ GSErrCode ImportToWorksheet(
         [&]() {
             return ACCompat::CallUndoable(Text(34), [&]() {
             return ACCompat::CreatePicture(
+                pictureDefaults,
                 prepared.raster,
                 prepared.bytes,
                 placement.localBounds.minimum,
@@ -106,7 +108,8 @@ GSErrCode ImportToWorksheet(
 
 GSErrCode ImportToFloorPlan(
     const PreparedImport& prepared,
-    const GeoRaster::Affine2D& projectToSurvey
+    const GeoRaster::Affine2D& projectToSurvey,
+    const API_Element& pictureDefaults
 )
 {
     const auto placement = GeoRaster::ComputeFloorPlanPlacement(prepared.footprint, projectToSurvey);
@@ -116,6 +119,7 @@ GSErrCode ImportToFloorPlan(
     }
     return ACCompat::CallUndoable(Text(34), [&]() {
         return ACCompat::CreatePicture(
+            pictureDefaults,
             prepared.raster,
             prepared.bytes,
             placement.value->anchor,
@@ -132,6 +136,13 @@ void Run()
 {
     API_DatabaseInfo originalDatabase {};
     GSErrCode error = ACCompat::GetCurrentDatabase(originalDatabase);
+    if (error != NoError) {
+        ShowError(Text(37) + " " + ACCompat::ErrorText(error));
+        return;
+    }
+
+    API_Element pictureDefaults {};
+    error = ACCompat::GetPictureDefaults(pictureDefaults);
     if (error != NoError) {
         ShowError(Text(37) + " " + ACCompat::ErrorText(error));
         return;
@@ -157,13 +168,13 @@ void Run()
     }
 
     if (request.target == GeoRasterUI::ImportTarget::NewWorksheet) {
-        error = ImportToWorksheet(request, *prepared, originalDatabase);
+        error = ImportToWorksheet(request, *prepared, originalDatabase, pictureDefaults);
     } else {
         if (!invokedFromFloorPlan || !projectToSurvey) {
             ShowError(Text(9));
             return;
         }
-        error = ImportToFloorPlan(*prepared, *projectToSurvey);
+        error = ImportToFloorPlan(*prepared, *projectToSurvey, pictureDefaults);
     }
     if (error != NoError) {
         ShowError(Text(37) + " " + ACCompat::ErrorText(error));

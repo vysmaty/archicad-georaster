@@ -36,6 +36,13 @@ GSErrCode ChangeCurrentDatabase(API_DatabaseInfo& database)
     return ACAPI_Database_ChangeCurrentDatabase(&database);
 }
 
+GSErrCode GetPictureDefaults(API_Element& element)
+{
+    element = {};
+    element.header.type = API_PictureID;
+    return ACAPI_Element_GetDefaults(&element, nullptr);
+}
+
 GSErrCode CreateWorksheet(
     const GS::UniString& reference,
     const GS::UniString& name,
@@ -95,6 +102,7 @@ GSErrCode GetProjectToSurveyTransform(GeoRaster::Affine2D& transform)
 }
 
 GSErrCode CreatePicture(
+    const API_Element& defaults,
     const GeoRaster::RasterInfo& raster,
     const std::vector<std::byte>& bytes,
     GeoRaster::Point2D anchor,
@@ -107,12 +115,8 @@ GSErrCode CreatePicture(
         return APIERR_BADPARS;
     }
 
-    API_Element element {};
-    element.header.type = API_PictureID;
-    GSErrCode error = ACAPI_Element_GetDefaults(&element, nullptr);
-    if (error != NoError) {
-        return error;
-    }
+    API_Element element = defaults;
+    GSErrCode error = NoError;
 
     element.picture.usePixelSize = false;
     element.picture.mirrored = false;
