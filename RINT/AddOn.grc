@@ -7,7 +7,7 @@
 
 'STR#' ID_ADDON_MENU "Menu command" {
 /* [1] */ "GeoRaster"
-/* [2] */ "Import georeferenced raster..."
+/* [2] */ "Import georeferenced raster...^E2^EW"
 }
 
 'GDLG' ID_IMPORT_DIALOG Modal 120 100 640 540 "Import georeferenced raster" {

@@ -74,6 +74,23 @@ def test_menu_is_a_user_defined_menu_and_picture_is_the_only_output() -> None:
     assert "Drawing (" not in dialog
 
 
+def test_import_menu_is_enabled_for_floor_plan_and_worksheet() -> None:
+    for language in ("RCZE", "RINT"):
+        resource = (ROOT / language / "AddOn.grc").read_text(encoding="utf-8")
+        assert resource.count("^E2^EW") == 1
+
+
+def test_worksheet_selector_is_enabled_only_for_selected_worksheet_target() -> None:
+    header = (ROOT / "src" / "ui" / "ImportDialog.hpp").read_text(encoding="utf-8")
+    dialog = (ROOT / "src" / "ui" / "ImportDialog.cpp").read_text(encoding="utf-8")
+
+    assert "void UpdateWorksheetSelectorState();" in header
+    assert "UpdateWorksheetSelectorState();" in dialog
+    assert "targetPopUp.GetSelectedItem() == 3" in dialog
+    assert "worksheetPopUp.Enable();" in dialog
+    assert "worksheetPopUp.Disable();" in dialog
+
+
 def test_worksheet_placement_uses_absolute_world_anchor() -> None:
     command = (ROOT / "src" / "GeoRasterCommand.cpp").read_text(encoding="utf-8")
 

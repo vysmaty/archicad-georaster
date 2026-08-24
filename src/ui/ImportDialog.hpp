@@ -60,6 +60,7 @@ private:
         std::filesystem::path& path
     );
     void AutoSelectWorldFile();
+    void UpdateWorksheetSelectorState();
     void RefreshValidation();
     void SetPath(DG::TextEdit& edit, const std::filesystem::path& path);
     std::filesystem::path GetPath(const DG::TextEdit& edit) const;

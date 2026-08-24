@@ -83,6 +83,7 @@ ImportDialog::ImportDialog(
     } else {
         worksheetPopUp.SelectItem(1);
     }
+    UpdateWorksheetSelectorState();
     importButton.Disable();
     previewText.SetText(ResourceText(1));
 }
@@ -145,6 +146,7 @@ void ImportDialog::ButtonClicked(const DG::ButtonClickEvent& event)
 
 void ImportDialog::PopUpChanged(const DG::PopUpChangeEvent&)
 {
+    UpdateWorksheetSelectorState();
     RefreshValidation();
 }
 
@@ -197,6 +199,15 @@ void ImportDialog::AutoSelectWorldFile()
         SetPath(worldFileEdit, *discovery.preferred);
     } else {
         SetPath(worldFileEdit, {});
+    }
+}
+
+void ImportDialog::UpdateWorksheetSelectorState()
+{
+    if (targetPopUp.GetSelectedItem() == 3 && !worksheetChoices.empty()) {
+        worksheetPopUp.Enable();
+    } else {
+        worksheetPopUp.Disable();
     }
 }
 
