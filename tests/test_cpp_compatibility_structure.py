@@ -52,22 +52,25 @@ def test_worksheet_failures_report_the_exact_api_stage() -> None:
         "ActivateWorksheet",
         "CallUndoable",
         "CreatePicture",
-        "CreateStaticDrawing",
     ):
         assert f'errorStage = "{stage}"' in command
 
 
-def test_import_supports_static_drawing_and_existing_worksheets() -> None:
+def test_menu_is_a_user_defined_menu_and_picture_is_the_only_output() -> None:
     command = (ROOT / "src" / "GeoRasterCommand.cpp").read_text(encoding="utf-8")
     compatibility = (ROOT / "src" / "compat" / "ArchicadCompatibility.cpp").read_text(
         encoding="utf-8"
     )
+    dialog = (ROOT / "src" / "ui" / "ImportDialog.cpp").read_text(encoding="utf-8")
 
+    assert "MenuCode_UserDef" in compatibility
+    assert "MenuCode_Tools" not in compatibility
     assert "ImportToExistingWorksheet" in command
-    assert "ElementKind::StaticDrawing" in command
-    assert "ACCompat::CreateStaticDrawing" in command
-    assert "ACAPI_Drawing_StartDrawingData" in compatibility
-    assert "ACAPI_Drawing_StopDrawingData" in compatibility
+    assert "APIWind_WorksheetID" in command
+    assert "StaticDrawing" not in command
+    assert "CreateStaticDrawing" not in compatibility
+    assert "ACAPI_Drawing_StartDrawingData" not in compatibility
+    assert "Drawing (" not in dialog
 
 
 def test_worksheet_placement_uses_absolute_world_anchor() -> None:

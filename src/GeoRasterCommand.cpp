@@ -42,7 +42,6 @@ struct PreparedImport {
 };
 
 GSErrCode CreateOutput(
-    const GeoRasterUI::ImportRequest& request,
     const PreparedImport& prepared,
     GeoRaster::Point2D anchor,
     double width,
@@ -52,12 +51,6 @@ GSErrCode CreateOutput(
 )
 {
     return ACCompat::CallUndoable(Text(34), [&]() {
-        if (request.elementKind == GeoRasterUI::ElementKind::StaticDrawing) {
-            errorStage = "CreateStaticDrawing";
-            return ACCompat::CreateStaticDrawing(
-                prepared.raster, prepared.bytes, anchor, width, height, rotation
-            );
-        }
         errorStage = "CreatePicture";
         return ACCompat::CreatePicture(
             prepared.raster, prepared.bytes, anchor, width, height, rotation
@@ -114,7 +107,7 @@ GSErrCode ImportToWorksheet(
         [&]() {
             errorStage = "CallUndoable";
             return CreateOutput(
-                request, prepared, placement.anchor, placement.width, placement.height, 0.0, errorStage
+                prepared, placement.anchor, placement.width, placement.height, 0.0, errorStage
             );
         },
         [&](const API_WindowInfo& window) {
@@ -131,7 +124,6 @@ GSErrCode ImportToWorksheet(
 }
 
 GSErrCode ImportToExistingWorksheet(
-    const GeoRasterUI::ImportRequest& request,
     const PreparedImport& prepared,
     const API_WindowInfo& originalWindow,
     const API_WindowInfo& targetWindow,
@@ -145,7 +137,7 @@ GSErrCode ImportToExistingWorksheet(
     }
     const auto placement = GeoRaster::ComputeWorksheetPlacement(prepared.footprint);
     error = CreateOutput(
-        request, prepared, placement.anchor, placement.width, placement.height, 0.0, errorStage
+        prepared, placement.anchor, placement.width, placement.height, 0.0, errorStage
     );
     if (error != NoError) {
         const GSErrCode restoreError = ACCompat::ActivateWindow(originalWindow);
@@ -157,7 +149,6 @@ GSErrCode ImportToExistingWorksheet(
 }
 
 GSErrCode ImportToFloorPlan(
-    const GeoRasterUI::ImportRequest& request,
     const PreparedImport& prepared,
     const GeoRaster::Affine2D& projectToSurvey,
     GS::UniString& errorStage
@@ -169,7 +160,7 @@ GSErrCode ImportToFloorPlan(
         return APIERR_BADPARS;
     }
     return CreateOutput(
-        request, prepared, placement.value->anchor, placement.value->width,
+        prepared, placement.value->anchor, placement.value->width,
         placement.value->height, placement.value->rotation, errorStage
     );
 }
@@ -225,7 +216,7 @@ void Run()
                 return;
             }
             error = ImportToExistingWorksheet(
-                request, *prepared, originalWindow, originalWindow, errorStage
+                *prepared, originalWindow, originalWindow, errorStage
             );
             break;
         case GeoRasterUI::ImportTarget::SelectedWorksheet:
@@ -234,7 +225,7 @@ void Run()
                 return;
             }
             error = ImportToExistingWorksheet(
-                request, *prepared, originalWindow, *request.worksheetWindow, errorStage
+                *prepared, originalWindow, *request.worksheetWindow, errorStage
             );
             break;
         case GeoRasterUI::ImportTarget::ActiveFloorPlan:
@@ -242,7 +233,7 @@ void Run()
                 ShowError(Text(9));
                 return;
             }
-            error = ImportToFloorPlan(request, *prepared, *projectToSurvey, errorStage);
+            error = ImportToFloorPlan(*prepared, *projectToSurvey, errorStage);
             break;
     }
     if (error != NoError) {

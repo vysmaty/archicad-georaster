@@ -2,9 +2,10 @@
 
 Native C++ Add-On for Archicad 27–29 that imports one north-up PNG or JPEG with a World File.
 
-The command **GeoRaster → Import georeferenced raster...** supports two targets:
+The **GeoRaster → Import georeferenced raster...** command supports:
 
-- a new independent Worksheet whose local `[0, 0]` corresponds to the raster's south-west outer corner;
+- a new independent Worksheet, the active Worksheet or a selected existing Worksheet; rasters use
+  their absolute World File coordinates;
 - the active Floor Plan, using the inverse of Archicad's native Survey Point transformation.
 
 The first slice deliberately rejects World File rotation, shear, mirroring, zero scale, non-finite values and Floor Plan placements more than 10,000 m from Project Origin. TIFF, GeoTIFF, batch import, CRS reprojection and distributed builds are outside this version.
@@ -33,5 +34,11 @@ The output is `build/.../GeoRaster.apx`. Every binary must be loaded only into t
 - `georaster.yaml` — supported versions and pinned upstreams.
 
 Local and CI builds keep `AC_ADDON_FOR_DISTRIBUTION=OFF` and use development-only MDID `1/1`. See [developer ID notes](docs/developer-id.md) before any distribution work.
+
+## Releases
+
+Pushing a semantic-version tag creates a GitHub Release after the complete CI matrix succeeds. Tags
+such as `v0.1.0` create a normal release; tags containing a suffix, such as `v0.1.1-alpha.1`, create
+a prerelease. Each release contains CZE Release Add-Ons for Archicad 27, 28 and 29.
 
 Licensed under Apache-2.0. Copyright 2026 vysmaty.

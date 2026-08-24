@@ -19,13 +19,11 @@
 /* [ 6] */ Button       512  48   76  22 LargePlain "Vybrat..."
 /* [ 7] */ PopupControl  112  86  476  22 80 0
 /* [ 8] */ PopupControl  112 120  476  22 80 0
-/* [ 9] */ PopupControl  112 154  476  22 80 0
-/* [10] */ LeftText       12 190  576 300 SmallPlain "Začněte výběrem rastru."
+/* [10] */ LeftText       12 154  576 336 SmallPlain "Začněte výběrem rastru."
 /* [11] */ Button        512 504   76  24 LargePlain "Importovat"
 /* [12] */ Button        424 504   76  24 LargePlain "Zrušit"
 /* [13] */ LeftText       12  86   92  22 LargePlain vCenter "Cíl:"
 /* [14] */ LeftText       12 120   92  22 LargePlain vCenter "Worksheet:"
-/* [15] */ LeftText       12 154   92  22 LargePlain vCenter "Element:"
 }
 
 'DLGH' ID_IMPORT_DIALOG DLG_GeoRaster_Import {
@@ -37,13 +35,11 @@
 6  "" Button_1
 7  "" PopUp_0
 8  "" PopUp_1
-9  "" PopUp_2
 10 "" LeftText_2
 11 "" Button_2
 12 "" Button_3
 13 "" LeftText_3
 14 "" LeftText_4
-15 "" LeftText_5
 }
 
 'STR#' ID_STATUS_STRINGS "Texty GeoRaster" {
@@ -96,9 +92,6 @@
 /* [47] */ "Aktivní Worksheet"
 /* [48] */ "Vybraný Worksheet"
 /* [49] */ "Aktivní půdorys"
-/* [50] */ "Picture"
-/* [51] */ "Drawing (uložený v projektu)"
-/* [52] */ "Typ elementu"
 /* [53] */ "Absolutní kotva Worksheetu"
 /* [54] */ "Vyberte cílový Worksheet."
 /* [55] */ "Natočení Survey Pointu"

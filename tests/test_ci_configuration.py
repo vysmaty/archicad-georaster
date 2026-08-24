@@ -34,6 +34,23 @@ def test_ci_runs_python_quality_and_all_seven_cpp_builds() -> None:
     assert "GeoRaster.apx" in workflow
 
 
+def test_version_tags_publish_all_czech_release_addons() -> None:
+    workflow = (ROOT / ".github" / "workflows" / "build.yml").read_text(encoding="utf-8")
+
+    assert '"v*.*.*"' in workflow
+    assert '"**"' in workflow
+    assert "Publish GitHub Release" in workflow
+    assert "needs: [python-quality, build]" in workflow
+    assert "contents: write" in workflow
+    assert "GH_TOKEN: ${{ github.token }}" in workflow
+    for version in (27, 28, 29):
+        assert f"GeoRaster-AC{version}-Release-CZE" in workflow
+    assert "GeoRaster-AC$version-Release-CZE.apx" in workflow
+    assert "--prerelease" in workflow
+    assert "Release tags must use vX.Y.Z" in workflow
+    assert "gh release create" in workflow
+
+
 def test_manifest_keeps_distribution_off_and_languages_explicit() -> None:
     manifest = (ROOT / "georaster.yaml").read_text(encoding="utf-8")
     config = (ROOT / "config.json").read_text(encoding="utf-8")

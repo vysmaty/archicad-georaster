@@ -42,14 +42,6 @@ GSErrCode CreatePicture(
     double height,
     double rotation
 );
-GSErrCode CreateStaticDrawing(
-    const GeoRaster::RasterInfo& raster,
-    const std::vector<std::byte>& bytes,
-    GeoRaster::Point2D anchor,
-    double width,
-    double height,
-    double rotation
-);
 GSErrCode CallUndoable(const GS::UniString& label, const std::function<GSErrCode()>& command);
 GS::UniString ErrorText(GSErrCode error);
 

@@ -12,13 +12,11 @@
 namespace GeoRasterUI {
 
 enum class ImportTarget { NewWorksheet, ActiveWorksheet, SelectedWorksheet, ActiveFloorPlan };
-enum class ElementKind { Picture, StaticDrawing };
 
 struct ImportRequest {
     std::filesystem::path rasterPath;
     std::filesystem::path worldFilePath;
     ImportTarget target = ImportTarget::NewWorksheet;
-    ElementKind elementKind = ElementKind::Picture;
     std::optional<API_WindowInfo> worksheetWindow;
 };
 
@@ -46,7 +44,6 @@ private:
         WorldFileBrowseId = 6,
         TargetPopUpId = 7,
         WorksheetPopUpId = 8,
-        ElementPopUpId = 9,
         PreviewTextId = 10,
         ImportButtonId = 11,
         CancelButtonId = 12
@@ -76,7 +73,6 @@ private:
     DG::Button worldFileBrowse;
     DG::PopUp targetPopUp;
     DG::PopUp worksheetPopUp;
-    DG::PopUp elementPopUp;
     DG::LeftText previewText;
     DG::Button importButton;
     DG::Button cancelButton;

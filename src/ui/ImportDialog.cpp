@@ -42,7 +42,6 @@ ImportDialog::ImportDialog(
       worldFileBrowse(GetReference(), WorldFileBrowseId),
       targetPopUp(GetReference(), TargetPopUpId),
       worksheetPopUp(GetReference(), WorksheetPopUpId),
-      elementPopUp(GetReference(), ElementPopUpId),
       previewText(GetReference(), PreviewTextId),
       importButton(GetReference(), ImportButtonId),
       cancelButton(GetReference(), CancelButtonId),
@@ -58,7 +57,6 @@ ImportDialog::ImportDialog(
     cancelButton.Attach(*this);
     targetPopUp.Attach(*this);
     worksheetPopUp.Attach(*this);
-    elementPopUp.Attach(*this);
     rasterEdit.Attach(*this);
     worldFileEdit.Attach(*this);
 
@@ -85,11 +83,6 @@ ImportDialog::ImportDialog(
     } else {
         worksheetPopUp.SelectItem(1);
     }
-    for (const GS::UniString& kind : {ResourceText(50), ResourceText(51)}) {
-        elementPopUp.AppendItem();
-        elementPopUp.SetItemText(elementPopUp.GetItemCount(), kind);
-    }
-    elementPopUp.SelectItem(1);
     importButton.Disable();
     previewText.SetText(ResourceText(1));
 }
@@ -102,7 +95,6 @@ ImportDialog::~ImportDialog()
     cancelButton.Detach(*this);
     targetPopUp.Detach(*this);
     worksheetPopUp.Detach(*this);
-    elementPopUp.Detach(*this);
     rasterEdit.Detach(*this);
     worldFileEdit.Detach(*this);
 }
@@ -112,8 +104,7 @@ ImportRequest ImportDialog::GetRequest() const
     ImportRequest request {
         GetPath(rasterEdit),
         GetPath(worldFileEdit),
-        ImportTarget::NewWorksheet,
-        elementPopUp.GetSelectedItem() == 2 ? ElementKind::StaticDrawing : ElementKind::Picture
+        ImportTarget::NewWorksheet
     };
     switch (targetPopUp.GetSelectedItem()) {
         case 2: request.target = ImportTarget::ActiveWorksheet; break;
@@ -249,7 +240,6 @@ void ImportDialog::RefreshValidation()
 
     const bool isFloorPlan = targetPopUp.GetSelectedItem() == 4;
     const bool isSelectedWorksheet = targetPopUp.GetSelectedItem() == 3;
-    preview += "\n" + ResourceText(52) + ": " + elementPopUp.GetItemText(elementPopUp.GetSelectedItem());
     if (!isFloorPlan) {
         preview += "\n" + ResourceText(53) + ": " + Number(worksheetPlacement.anchor.x) + ", " +
                    Number(worksheetPlacement.anchor.y) + " m";
