@@ -13,6 +13,11 @@ struct WorksheetHandle {
     API_WindowInfo window;
 };
 
+struct WorksheetChoice {
+    GS::UniString label;
+    API_WindowInfo window;
+};
+
 GSErrCode RegisterMenu(short menuResourceId);
 GSResModule OwnResourceModule();
 void ReportRollbackFailure(GSErrCode restoreError, GSErrCode deleteError);
@@ -25,10 +30,19 @@ GSErrCode CreateWorksheet(
 );
 GSErrCode DeleteWorksheet(WorksheetHandle& worksheet);
 bool WorksheetReferenceExists(const GS::UniString& reference);
+std::vector<WorksheetChoice> GetWorksheetChoices();
 GSErrCode GetProjectToSurveyTransform(GeoRaster::Affine2D& transform);
 GSErrCode GetProjectLengthUnit(GeoRaster::LengthUnitInfo& unit);
 GSErrCode FormatProjectLength(double meters, GS::UniString& formatted);
 GSErrCode CreatePicture(
+    const GeoRaster::RasterInfo& raster,
+    const std::vector<std::byte>& bytes,
+    GeoRaster::Point2D anchor,
+    double width,
+    double height,
+    double rotation
+);
+GSErrCode CreateStaticDrawing(
     const GeoRaster::RasterInfo& raster,
     const std::vector<std::byte>& bytes,
     GeoRaster::Point2D anchor,

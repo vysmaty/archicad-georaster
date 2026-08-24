@@ -5,6 +5,7 @@
 #include "compat/ArchicadCompatibility.hpp"
 #include "ui/ImportDialog.hpp"
 
+#include <cmath>
 #include <iomanip>
 #include <locale>
 #include <sstream>
@@ -29,6 +30,8 @@ GS::UniString Number(double value, int precision = 3)
 
 ImportDialog::ImportDialog(
     bool floorPlanAvailable,
+    bool activeWorksheetAvailable,
+    std::vector<ACCompat::WorksheetChoice> worksheetChoices,
     std::optional<GeoRaster::Affine2D> projectToSurvey,
     std::optional<GeoRaster::LengthUnitInfo> projectLengthUnit
 )
@@ -37,12 +40,15 @@ ImportDialog::ImportDialog(
       rasterBrowse(GetReference(), RasterBrowseId),
       worldFileEdit(GetReference(), WorldFileEditId),
       worldFileBrowse(GetReference(), WorldFileBrowseId),
-      worksheetRadio(GetReference(), WorksheetRadioId),
-      floorPlanRadio(GetReference(), FloorPlanRadioId),
+      targetPopUp(GetReference(), TargetPopUpId),
+      worksheetPopUp(GetReference(), WorksheetPopUpId),
+      elementPopUp(GetReference(), ElementPopUpId),
       previewText(GetReference(), PreviewTextId),
       importButton(GetReference(), ImportButtonId),
       cancelButton(GetReference(), CancelButtonId),
       floorPlanAvailable(floorPlanAvailable),
+      activeWorksheetAvailable(activeWorksheetAvailable),
+      worksheetChoices(std::move(worksheetChoices)),
       projectToSurvey(std::move(projectToSurvey)),
       projectLengthUnit(std::move(projectLengthUnit))
 {
@@ -50,15 +56,40 @@ ImportDialog::ImportDialog(
     worldFileBrowse.Attach(*this);
     importButton.Attach(*this);
     cancelButton.Attach(*this);
-    worksheetRadio.Attach(*this);
-    floorPlanRadio.Attach(*this);
+    targetPopUp.Attach(*this);
+    worksheetPopUp.Attach(*this);
+    elementPopUp.Attach(*this);
     rasterEdit.Attach(*this);
     worldFileEdit.Attach(*this);
 
-    worksheetRadio.Select();
-    if (!floorPlanAvailable) {
-        floorPlanRadio.Disable();
+    for (const GS::UniString& target : {
+             ResourceText(46), ResourceText(47), ResourceText(48), ResourceText(49)
+         }) {
+        targetPopUp.AppendItem();
+        targetPopUp.SetItemText(targetPopUp.GetItemCount(), target);
     }
+    targetPopUp.SelectItem(1);
+    if (!activeWorksheetAvailable) {
+        targetPopUp.DisableItem(2);
+    }
+    if (!floorPlanAvailable) {
+        targetPopUp.DisableItem(4);
+    }
+    for (const ACCompat::WorksheetChoice& choice : this->worksheetChoices) {
+        worksheetPopUp.AppendItem();
+        worksheetPopUp.SetItemText(worksheetPopUp.GetItemCount(), choice.label);
+    }
+    if (worksheetPopUp.GetItemCount() == 0) {
+        targetPopUp.DisableItem(3);
+        worksheetPopUp.Disable();
+    } else {
+        worksheetPopUp.SelectItem(1);
+    }
+    for (const GS::UniString& kind : {ResourceText(50), ResourceText(51)}) {
+        elementPopUp.AppendItem();
+        elementPopUp.SetItemText(elementPopUp.GetItemCount(), kind);
+    }
+    elementPopUp.SelectItem(1);
     importButton.Disable();
     previewText.SetText(ResourceText(1));
 }
@@ -69,19 +100,34 @@ ImportDialog::~ImportDialog()
     worldFileBrowse.Detach(*this);
     importButton.Detach(*this);
     cancelButton.Detach(*this);
-    worksheetRadio.Detach(*this);
-    floorPlanRadio.Detach(*this);
+    targetPopUp.Detach(*this);
+    worksheetPopUp.Detach(*this);
+    elementPopUp.Detach(*this);
     rasterEdit.Detach(*this);
     worldFileEdit.Detach(*this);
 }
 
 ImportRequest ImportDialog::GetRequest() const
 {
-    return {
+    ImportRequest request {
         GetPath(rasterEdit),
         GetPath(worldFileEdit),
-        floorPlanRadio.IsSelected() ? ImportTarget::ActiveFloorPlan : ImportTarget::NewWorksheet
+        ImportTarget::NewWorksheet,
+        elementPopUp.GetSelectedItem() == 2 ? ElementKind::StaticDrawing : ElementKind::Picture
     };
+    switch (targetPopUp.GetSelectedItem()) {
+        case 2: request.target = ImportTarget::ActiveWorksheet; break;
+        case 3:
+            request.target = ImportTarget::SelectedWorksheet;
+            if (const short selected = worksheetPopUp.GetSelectedItem(); selected > 0 &&
+                static_cast<std::size_t>(selected) <= worksheetChoices.size()) {
+                request.worksheetWindow = worksheetChoices[static_cast<std::size_t>(selected - 1)].window;
+            }
+            break;
+        case 4: request.target = ImportTarget::ActiveFloorPlan; break;
+        default: break;
+    }
+    return request;
 }
 
 void ImportDialog::ButtonClicked(const DG::ButtonClickEvent& event)
@@ -106,7 +152,7 @@ void ImportDialog::ButtonClicked(const DG::ButtonClickEvent& event)
     }
 }
 
-void ImportDialog::RadioItemChanged(const DG::RadioItemChangeEvent&)
+void ImportDialog::PopUpChanged(const DG::PopUpChangeEvent&)
 {
     RefreshValidation();
 }
@@ -181,6 +227,7 @@ void ImportDialog::RefreshValidation()
         *worldFile.value, raster.value->pixelWidth, raster.value->pixelHeight
     );
     const auto bounds = GeoRaster::ComputeBounds(footprint);
+    const auto worksheetPlacement = GeoRaster::ComputeWorksheetPlacement(footprint);
     const double width = bounds.maximum.x - bounds.minimum.x;
     const double height = bounds.maximum.y - bounds.minimum.y;
     GS::UniString preview = ResourceText(4) + ": " +
@@ -200,7 +247,19 @@ void ImportDialog::RefreshValidation()
         }
     }
 
-    if (floorPlanRadio.IsSelected()) {
+    const bool isFloorPlan = targetPopUp.GetSelectedItem() == 4;
+    const bool isSelectedWorksheet = targetPopUp.GetSelectedItem() == 3;
+    preview += "\n" + ResourceText(52) + ": " + elementPopUp.GetItemText(elementPopUp.GetSelectedItem());
+    if (!isFloorPlan) {
+        preview += "\n" + ResourceText(53) + ": " + Number(worksheetPlacement.anchor.x) + ", " +
+                   Number(worksheetPlacement.anchor.y) + " m";
+        if (isSelectedWorksheet && worksheetPopUp.GetSelectedItem() == 0) {
+            previewText.SetText(ResourceText(54));
+            return;
+        }
+    }
+
+    if (isFloorPlan) {
         if (!floorPlanAvailable || !projectToSurvey) {
             previewText.SetText(ResourceText(9));
             return;
@@ -234,6 +293,9 @@ void ImportDialog::RefreshValidation()
             previewText.SetText(preview);
             return;
         }
+        const double surveyRotation = std::atan2(projectToSurvey->m10, projectToSurvey->m00) *
+            180.0 / 3.14159265358979323846;
+        preview += "\n" + ResourceText(55) + ": " + Number(surveyRotation, 2) + " deg";
         preview += "\n" + ResourceText(10) + ": " + Number(analysis.placement->anchor.x) + ", " +
                    Number(analysis.placement->anchor.y) + " m; " + ResourceText(11) + ": " +
                    Number(analysis.placement->rotation * 180.0 / 3.14159265358979323846, 2) +

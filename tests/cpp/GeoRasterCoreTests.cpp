@@ -90,11 +90,10 @@ void TestFootprintAndWorksheet()
            "bottom-right outer corner applies half-pixel correction");
 
     const auto worksheet = GeoRaster::ComputeWorksheetPlacement(footprint);
-    Expect(Near(worksheet.worldOrigin.x, 99.0) && Near(worksheet.worldOrigin.y, 195.5),
-           "worksheet origin is south-west outer corner");
-    Expect(Near(worksheet.localBounds.maximum.x, 8.0) &&
-               Near(worksheet.localBounds.maximum.y, 6.0),
-           "worksheet bounds use full raster size");
+    Expect(Near(worksheet.anchor.x, 99.0) && Near(worksheet.anchor.y, 195.5),
+           "worksheet anchor is the absolute south-west outer corner");
+    Expect(Near(worksheet.width, 8.0) && Near(worksheet.height, 6.0),
+           "worksheet placement uses full raster size in metres");
 }
 
 void TestRasterHeaders()

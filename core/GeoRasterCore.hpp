@@ -46,8 +46,9 @@ struct WorldFootprint {
 };
 
 struct WorksheetPlacement {
-    Point2D worldOrigin;
-    Bounds2D localBounds;
+    Point2D anchor;
+    double width = 0.0;
+    double height = 0.0;
 };
 
 struct Affine2D {

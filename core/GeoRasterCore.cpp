@@ -140,10 +140,8 @@ WorksheetPlacement ComputeWorksheetPlacement(const WorldFootprint& footprint)
     const Bounds2D worldBounds = ComputeBounds(footprint);
     return {
         worldBounds.minimum,
-        {{0.0, 0.0}, {
-            worldBounds.maximum.x - worldBounds.minimum.x,
-            worldBounds.maximum.y - worldBounds.minimum.y
-        }}
+        worldBounds.maximum.x - worldBounds.minimum.x,
+        worldBounds.maximum.y - worldBounds.minimum.y
     };
 }
 

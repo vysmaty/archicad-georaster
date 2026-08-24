@@ -1,5 +1,6 @@
 #pragma once
 
+#include "compat/ArchicadCompatibility.hpp"
 #include "core/GeoRasterCore.hpp"
 
 #include "DGModule.hpp"
@@ -10,21 +11,26 @@
 
 namespace GeoRasterUI {
 
-enum class ImportTarget { NewWorksheet, ActiveFloorPlan };
+enum class ImportTarget { NewWorksheet, ActiveWorksheet, SelectedWorksheet, ActiveFloorPlan };
+enum class ElementKind { Picture, StaticDrawing };
 
 struct ImportRequest {
     std::filesystem::path rasterPath;
     std::filesystem::path worldFilePath;
     ImportTarget target = ImportTarget::NewWorksheet;
+    ElementKind elementKind = ElementKind::Picture;
+    std::optional<API_WindowInfo> worksheetWindow;
 };
 
 class ImportDialog final : public DG::ModalDialog,
                            public DG::ButtonItemObserver,
-                           public DG::RadioItemObserver,
+                           public DG::PopUpObserver,
                            public DG::TextEditBaseObserver {
 public:
     ImportDialog(
         bool floorPlanAvailable,
+        bool activeWorksheetAvailable,
+        std::vector<ACCompat::WorksheetChoice> worksheetChoices,
         std::optional<GeoRaster::Affine2D> projectToSurvey,
         std::optional<GeoRaster::LengthUnitInfo> projectLengthUnit
     );
@@ -38,16 +44,17 @@ private:
         RasterBrowseId = 3,
         WorldFileEditId = 5,
         WorldFileBrowseId = 6,
-        WorksheetRadioId = 7,
-        FloorPlanRadioId = 8,
-        PreviewTextId = 9,
-        ImportButtonId = 10,
-        CancelButtonId = 11
+        TargetPopUpId = 7,
+        WorksheetPopUpId = 8,
+        ElementPopUpId = 9,
+        PreviewTextId = 10,
+        ImportButtonId = 11,
+        CancelButtonId = 12
     };
 
     DG::Dialog& GetReference() { return *this; }
     void ButtonClicked(const DG::ButtonClickEvent& event) override;
-    void RadioItemChanged(const DG::RadioItemChangeEvent& event) override;
+    void PopUpChanged(const DG::PopUpChangeEvent& event) override;
     void TextEditChanged(const DG::TextEditChangeEvent& event) override;
 
     bool SelectFile(
@@ -67,12 +74,15 @@ private:
     DG::Button rasterBrowse;
     DG::TextEdit worldFileEdit;
     DG::Button worldFileBrowse;
-    DG::RadioButton worksheetRadio;
-    DG::RadioButton floorPlanRadio;
+    DG::PopUp targetPopUp;
+    DG::PopUp worksheetPopUp;
+    DG::PopUp elementPopUp;
     DG::LeftText previewText;
     DG::Button importButton;
     DG::Button cancelButton;
     bool floorPlanAvailable;
+    bool activeWorksheetAvailable;
+    std::vector<ACCompat::WorksheetChoice> worksheetChoices;
     std::optional<GeoRaster::Affine2D> projectToSurvey;
     std::optional<GeoRaster::LengthUnitInfo> projectLengthUnit;
     GeoRaster::WorldFileDiscovery discovery;

@@ -52,8 +52,29 @@ def test_worksheet_failures_report_the_exact_api_stage() -> None:
         "ActivateWorksheet",
         "CallUndoable",
         "CreatePicture",
+        "CreateStaticDrawing",
     ):
         assert f'errorStage = "{stage}"' in command
+
+
+def test_import_supports_static_drawing_and_existing_worksheets() -> None:
+    command = (ROOT / "src" / "GeoRasterCommand.cpp").read_text(encoding="utf-8")
+    compatibility = (ROOT / "src" / "compat" / "ArchicadCompatibility.cpp").read_text(
+        encoding="utf-8"
+    )
+
+    assert "ImportToExistingWorksheet" in command
+    assert "ElementKind::StaticDrawing" in command
+    assert "ACCompat::CreateStaticDrawing" in command
+    assert "ACAPI_Drawing_StartDrawingData" in compatibility
+    assert "ACAPI_Drawing_StopDrawingData" in compatibility
+
+
+def test_worksheet_placement_uses_absolute_world_anchor() -> None:
+    command = (ROOT / "src" / "GeoRasterCommand.cpp").read_text(encoding="utf-8")
+
+    assert "placement.anchor, placement.width, placement.height" in command
+    assert "localBounds" not in command
 
 
 def test_bad_index_error_is_named_for_user_diagnostics() -> None:

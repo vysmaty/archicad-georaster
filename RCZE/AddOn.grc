@@ -10,18 +10,22 @@
 /* [2] */ "Importovat georeferencovaný rastr..."
 }
 
-'GDLG' ID_IMPORT_DIALOG Modal 120 100 600 480 "Import georeferencovaného rastru" {
+'GDLG' ID_IMPORT_DIALOG Modal 120 100 640 540 "Import georeferencovaného rastru" {
 /* [ 1] */ LeftText      12  14  100  22 LargePlain vCenter "Rastr:"
 /* [ 2] */ TextEdit     112  14  390  22 LargePlain 1024
 /* [ 3] */ Button       512  14   76  22 LargePlain "Vybrat..."
 /* [ 4] */ LeftText      12  48  100  22 LargePlain vCenter "World File:"
 /* [ 5] */ TextEdit     112  48  390  22 LargePlain 1024
 /* [ 6] */ Button       512  48   76  22 LargePlain "Vybrat..."
-/* [ 7] */ RadioButton   12  86  220  22 LargePlain 1 "Nový Worksheet"
-/* [ 8] */ RadioButton  250  86  260  22 LargePlain 1 "Aktivní půdorys"
-/* [ 9] */ LeftText      12 122  576 300 SmallPlain "Začněte výběrem rastru."
-/* [10] */ Button       512 444   76  24 LargePlain "Importovat"
-/* [11] */ Button       424 444   76  24 LargePlain "Zrušit"
+/* [ 7] */ PopupControl  112  86  476  22 80 0
+/* [ 8] */ PopupControl  112 120  476  22 80 0
+/* [ 9] */ PopupControl  112 154  476  22 80 0
+/* [10] */ LeftText       12 190  576 300 SmallPlain "Začněte výběrem rastru."
+/* [11] */ Button        512 504   76  24 LargePlain "Importovat"
+/* [12] */ Button        424 504   76  24 LargePlain "Zrušit"
+/* [13] */ LeftText       12  86   92  22 LargePlain vCenter "Cíl:"
+/* [14] */ LeftText       12 120   92  22 LargePlain vCenter "Worksheet:"
+/* [15] */ LeftText       12 154   92  22 LargePlain vCenter "Element:"
 }
 
 'DLGH' ID_IMPORT_DIALOG DLG_GeoRaster_Import {
@@ -31,11 +35,15 @@
 4  "" LeftText_1
 5  "" TextEdit_1
 6  "" Button_1
-7  "" RadioButton_0
-8  "" RadioButton_1
-9  "" LeftText_2
-10 "" Button_2
-11 "" Button_3
+7  "" PopUp_0
+8  "" PopUp_1
+9  "" PopUp_2
+10 "" LeftText_2
+11 "" Button_2
+12 "" Button_3
+13 "" LeftText_3
+14 "" LeftText_4
+15 "" LeftText_5
 }
 
 'STR#' ID_STATUS_STRINGS "Texty GeoRaster" {
@@ -84,6 +92,16 @@
 /* [43] */ "Survey Point je pravděpodobně zadaný v projektových jednotkách, jako by šlo o metry. Vzdálenost:"
 /* [44] */ "Doporučená poloha Survey Pointu"
 /* [45] */ "nelze načíst; zobrazeno v metrech"
+/* [46] */ "Nový Worksheet"
+/* [47] */ "Aktivní Worksheet"
+/* [48] */ "Vybraný Worksheet"
+/* [49] */ "Aktivní půdorys"
+/* [50] */ "Picture"
+/* [51] */ "Drawing (uložený v projektu)"
+/* [52] */ "Typ elementu"
+/* [53] */ "Absolutní kotva Worksheetu"
+/* [54] */ "Vyberte cílový Worksheet."
+/* [55] */ "Natočení Survey Pointu"
 }
 
 'MDID' 32500 "Identifikátor doplňku" {

@@ -74,6 +74,26 @@ bool WorksheetReferenceExists(const GS::UniString& reference)
     return false;
 }
 
+std::vector<WorksheetChoice> GetWorksheetChoices()
+{
+    std::vector<WorksheetChoice> choices;
+    const auto databases = ACAPI_Database_GetDatabasesForType(APIWind_WorksheetID);
+    for (const API_DatabaseUnId& databaseId : databases) {
+        API_DatabaseInfo database {};
+        database.typeID = APIWind_WorksheetID;
+        database.databaseUnId = databaseId;
+        if (ACAPI_Window_GetDatabaseInfo(&database) != NoError) {
+            continue;
+        }
+        WorksheetChoice choice;
+        choice.label = GS::UniString(database.ref) + " — " + GS::UniString(database.name);
+        choice.window.typeID = APIWind_WorksheetID;
+        choice.window.databaseUnId = database.databaseUnId;
+        choices.push_back(std::move(choice));
+    }
+    return choices;
+}
+
 GSErrCode GetProjectToSurveyTransform(GeoRaster::Affine2D& transform)
 {
     API_Tranmat matrix {};
@@ -191,6 +211,65 @@ GSErrCode CreatePicture(
     std::memcpy(*memo.pictHdl, bytes.data(), bytes.size());
     error = ACAPI_Element_Create(&element, &memo);
     ACAPI_DisposeElemMemoHdls(&memo);
+    return error;
+}
+
+GSErrCode CreateStaticDrawing(
+    const GeoRaster::RasterInfo& raster,
+    const std::vector<std::byte>& bytes,
+    GeoRaster::Point2D anchor,
+    double width,
+    double height,
+    double rotation
+)
+{
+    if (bytes.empty() || width <= 0.0 || height <= 0.0) {
+        return APIERR_BADPARS;
+    }
+
+    GSErrCode error = ACAPI_Drawing_StartDrawingData();
+    if (error != NoError) {
+        return error;
+    }
+
+    error = CreatePicture(raster, bytes, {0.0, 0.0}, width, height, 0.0);
+    GSPtr drawingData = nullptr;
+    API_Box bounds {};
+    const GSErrCode stopError = ACAPI_Drawing_StopDrawingData(&drawingData, &bounds);
+    if (error != NoError) {
+        if (drawingData != nullptr) {
+            BMKillPtr(&drawingData);
+        }
+        return error;
+    }
+    if (stopError != NoError || drawingData == nullptr) {
+        if (drawingData != nullptr) {
+            BMKillPtr(&drawingData);
+        }
+        return stopError != NoError ? stopError : APIERR_GENERAL;
+    }
+
+    API_Element drawing {};
+    drawing.header.type = API_DrawingID;
+    error = ACAPI_Element_GetDefaults(&drawing, nullptr);
+    if (error == NoError) {
+        drawing.drawing.pos = {anchor.x, anchor.y};
+        drawing.drawing.angle = rotation;
+        drawing.drawing.ratio = 1.0;
+        drawing.drawing.anchorPoint = APIAnc_LB;
+        drawing.drawing.useOwnOrigoAsAnchor = true;
+        drawing.drawing.isTransparentBk = true;
+        drawing.drawing.isCutWithFrame = false;
+        drawing.drawing.hasBorderLine = false;
+        drawing.drawing.manualUpdate = true;
+        drawing.drawing.nameType = APIName_CustomName;
+        CHCopyC("GeoRaster", drawing.drawing.name);
+        drawing.drawing.bounds = bounds;
+        API_ElementMemo memo {};
+        memo.drawingData = drawingData;
+        error = ACAPI_Element_Create(&drawing, &memo);
+    }
+    BMKillPtr(&drawingData);
     return error;
 }
 
