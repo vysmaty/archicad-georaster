@@ -44,9 +44,9 @@ private:
         WorldFileBrowseId = 6,
         TargetPopUpId = 7,
         WorksheetPopUpId = 8,
-        PreviewTextId = 10,
-        ImportButtonId = 11,
-        CancelButtonId = 12
+        PreviewTextId = 9,
+        ImportButtonId = 10,
+        CancelButtonId = 11
     };
 
     DG::Dialog& GetReference() { return *this; }

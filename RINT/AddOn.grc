@@ -19,11 +19,11 @@
 /* [ 6] */ Button       512  48   76  22 LargePlain "Browse..."
 /* [ 7] */ PopupControl  112  86  476  22 80 0
 /* [ 8] */ PopupControl  112 120  476  22 80 0
-/* [10] */ LeftText       12 154  576 336 SmallPlain "Select a raster to begin."
-/* [11] */ Button        512 504   76  24 LargePlain "Import"
-/* [12] */ Button        424 504   76  24 LargePlain "Cancel"
-/* [13] */ LeftText       12  86   92  22 LargePlain vCenter "Target:"
-/* [14] */ LeftText       12 120   92  22 LargePlain vCenter "Worksheet:"
+/* [ 9] */ LeftText       12 154  576 336 SmallPlain "Select a raster to begin."
+/* [10] */ Button        512 504   76  24 LargePlain "Import"
+/* [11] */ Button        424 504   76  24 LargePlain "Cancel"
+/* [12] */ LeftText       12  86   92  22 LargePlain vCenter "Target:"
+/* [13] */ LeftText       12 120   92  22 LargePlain vCenter "Worksheet:"
 }
 
 'DLGH' ID_IMPORT_DIALOG DLG_GeoRaster_Import {
@@ -35,11 +35,11 @@
 6  "" Button_1
 7  "" PopUp_0
 8  "" PopUp_1
-10 "" LeftText_2
-11 "" Button_2
-12 "" Button_3
-13 "" LeftText_3
-14 "" LeftText_4
+9  "" LeftText_2
+10 "" Button_2
+11 "" Button_3
+12 "" LeftText_3
+13 "" LeftText_4
 }
 
 'STR#' ID_STATUS_STRINGS "GeoRaster strings" {

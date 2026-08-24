@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -106,3 +107,15 @@ def test_project_working_units_stay_behind_the_compatibility_boundary() -> None:
     assert "ACAPI_ProjectSetting_GetPreferences" in compatibility
     assert "APIPrefs_WorkingUnitsID" in compatibility
     assert "ACAPI_Conversion_GetConvertedUnitValue" in compatibility
+
+
+def test_import_dialog_resource_ids_are_contiguous_and_mapped() -> None:
+    for language in ("RCZE", "RINT"):
+        resource = (ROOT / language / "AddOn.grc").read_text(encoding="utf-8")
+        gdlg = resource.split("'GDLG' ID_IMPORT_DIALOG", 1)[1].split("'DLGH'", 1)[0]
+        dlgh = resource.split("'DLGH' ID_IMPORT_DIALOG", 1)[1].split("'STR#'", 1)[0]
+        item_ids = [int(item) for item in re.findall(r"/\* \[\s*(\d+)\] \*/", gdlg)]
+        mapping_ids = [int(item) for item in re.findall(r"^\s*(\d+)\s+", dlgh, re.MULTILINE)]
+
+        assert item_ids == list(range(1, len(item_ids) + 1))
+        assert mapping_ids == item_ids
