@@ -13,7 +13,8 @@ The **GeoRaster → Import georeferenced raster...** command supports:
 > **Out of scope:** GeoRaster deliberately rejects World File rotation, shear, mirroring, zero
 > scale, non-finite values and Floor Plan placements more than 10,000 m from Project Origin. TIFF,
 > GeoTIFF, batch import, CRS reprojection and distributed builds are not part of this version, and
-> there are currently no plans to implement them.
+> there are currently no plans to implement them. Contributions or alternative proposals for these
+> capabilities are welcome.
 
 ## Build
 
